@@ -1,0 +1,7 @@
+actor: UnitTester
+modules:
+    enabled:
+        - \OpenDxp\Bundle\DataImporterBundle\Tests\Helper\Unit
+        - \OpenDxp\Tests\Support\Helper\Pimcore:
+              connect_db: true
+              cache_router: false
