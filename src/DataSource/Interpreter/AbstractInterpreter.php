@@ -1,27 +1,27 @@
 <?php
 
 /**
- * Pimcore
+ * OpenDXP
  *
- * This source file is available under two different licenses:
- * - GNU General Public License version 3 (GPLv3)
- * - Pimcore Commercial License (PCL)
+ * This source file is licensed under the GNU General Public License version 3 (GPLv3).
+ *
  * Full copyright and license information is available in
  * LICENSE.md which is distributed with this source code.
  *
- *  @copyright  Copyright (c) Pimcore GmbH (http://www.pimcore.org)
- *  @license    http://www.pimcore.org/license     GPLv3 and PCL
+ * @copyright  Copyright (c) Pimcore GmbH (https://pimcore.com)
+ * @copyright  Modification Copyright (c) OpenDXP (https://www.opendxp.io)
+ * @license    https://www.gnu.org/licenses/gpl-3.0.html  GNU General Public License version 3 (GPLv3)
  */
 
 namespace OpenDxp\Bundle\DataImporterBundle\DataSource\Interpreter;
 
+use OpenDxp\Bundle\ApplicationLoggerBundle\ApplicationLogger;
+use OpenDxp\Bundle\ApplicationLoggerBundle\FileObject;
 use OpenDxp\Bundle\DataImporterBundle\DataSource\Interpreter\DeltaChecker\DeltaChecker;
-use OpenDxp\Bundle\DataImporterBundle\PimcoreDataImporterBundle;
+use OpenDxp\Bundle\DataImporterBundle\OpenDxpDataImporterBundle;
 use OpenDxp\Bundle\DataImporterBundle\Processing\ImportProcessingService;
 use OpenDxp\Bundle\DataImporterBundle\Queue\QueueService;
 use OpenDxp\Bundle\DataImporterBundle\Resolver\Resolver;
-use OpenDxp\Bundle\ApplicationLoggerBundle\ApplicationLogger;
-use OpenDxp\Log\FileObject;
 use OpenDxp\Model\Tool\TmpStore;
 use OpenDxp\Tool\Admin;
 use Psr\Log\LoggerAwareTrait;
@@ -87,10 +87,6 @@ abstract class AbstractInterpreter implements InterpreterInterface
 
     /**
      * AbstractInterpreter constructor.
-     *
-     * @param DeltaChecker $deltaChecker
-     * @param QueueService $queueService
-     * @param ApplicationLogger $applicationLogger
      */
     public function __construct(DeltaChecker $deltaChecker, QueueService $queueService, ApplicationLogger $applicationLogger)
     {
@@ -184,14 +180,14 @@ abstract class AbstractInterpreter implements InterpreterInterface
             $archiveLogMessage = 'Uploaded file not valid.';
             $message = 'Uploaded file not valid, not creating any queue items and doing any cleanup."';
             $this->applicationLogger->error($message, [
-                'component' => PimcoreDataImporterBundle::LOGGER_COMPONENT_PREFIX . $this->configName
+                'component' => OpenDxpDataImporterBundle::LOGGER_COMPONENT_PREFIX . $this->configName,
             ]);
         }
 
         if ($this->doArchiveImportFile) {
             $this->applicationLogger->info($archiveLogMessage, [
-                'component' => PimcoreDataImporterBundle::LOGGER_COMPONENT_PREFIX . $this->configName,
-                'fileObject' => new FileObject(file_get_contents($path))
+                'component' => OpenDxpDataImporterBundle::LOGGER_COMPONENT_PREFIX . $this->configName,
+                'fileObject' => new FileObject(file_get_contents($path)),
             ]);
         }
 
@@ -224,7 +220,7 @@ abstract class AbstractInterpreter implements InterpreterInterface
             $message = sprintf("Import data of item `%s` of `%s` didn't change, not adding to queue.", ($data[$this->idDataIndex] ?? null), $this->configName);
             $this->logger->debug($message);
             $this->applicationLogger->debug($message, [
-                'component' => PimcoreDataImporterBundle::LOGGER_COMPONENT_PREFIX . $this->configName,
+                'component' => OpenDxpDataImporterBundle::LOGGER_COMPONENT_PREFIX . $this->configName,
             ]);
         }
     }

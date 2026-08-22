@@ -5,7 +5,7 @@ namespace OpenDxp\Bundle\DataImporterBundle\Mapping\Operator\Simple;
 use OpenDxp\Bundle\DataImporterBundle\Exception\InvalidConfigurationException;
 use OpenDxp\Bundle\DataImporterBundle\Mapping\Operator\AbstractOperator;
 use OpenDxp\Bundle\DataImporterBundle\Mapping\Type\TransformationDataTypeService;
-use OpenDxp\Bundle\DataImporterBundle\PimcoreDataImporterBundle;
+use OpenDxp\Bundle\DataImporterBundle\OpenDxpDataImporterBundle;
 use OpenDxp\Model\Element\ElementInterface;
 
 class ObjectField extends AbstractOperator
@@ -24,7 +24,7 @@ class ObjectField extends AbstractOperator
     private function logWarning(string $logMessage): void
     {
         $this->applicationLogger->warning($logMessage . ' ', [
-            'component' => PimcoreDataImporterBundle::LOGGER_COMPONENT_PREFIX . $this->configName,
+            'component' => OpenDxpDataImporterBundle::LOGGER_COMPONENT_PREFIX . $this->configName,
         ]);
     }
 

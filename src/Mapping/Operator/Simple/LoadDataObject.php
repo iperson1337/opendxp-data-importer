@@ -1,16 +1,16 @@
 <?php
 
 /**
- * Pimcore
+ * OpenDXP
  *
- * This source file is available under two different licenses:
- * - GNU General Public License version 3 (GPLv3)
- * - Pimcore Commercial License (PCL)
+ * This source file is licensed under the GNU General Public License version 3 (GPLv3).
+ *
  * Full copyright and license information is available in
  * LICENSE.md which is distributed with this source code.
  *
- *  @copyright  Copyright (c) Pimcore GmbH (http://www.pimcore.org)
- *  @license    http://www.pimcore.org/license     GPLv3 and PCL
+ * @copyright  Copyright (c) Pimcore GmbH (https://pimcore.com)
+ * @copyright  Modification Copyright (c) OpenDXP (https://www.opendxp.io)
+ * @license    https://www.gnu.org/licenses/gpl-3.0.html  GNU General Public License version 3 (GPLv3)
  */
 
 namespace OpenDxp\Bundle\DataImporterBundle\Mapping\Operator\Simple;
@@ -18,15 +18,19 @@ namespace OpenDxp\Bundle\DataImporterBundle\Mapping\Operator\Simple;
 use OpenDxp\Bundle\DataImporterBundle\Exception\InvalidConfigurationException;
 use OpenDxp\Bundle\DataImporterBundle\Mapping\Operator\AbstractOperator;
 use OpenDxp\Bundle\DataImporterBundle\Mapping\Type\TransformationDataTypeService;
-use OpenDxp\Bundle\DataImporterBundle\PimcoreDataImporterBundle;
+use OpenDxp\Bundle\DataImporterBundle\OpenDxpDataImporterBundle;
 use OpenDxp\Bundle\DataImporterBundle\Tool\DataObjectLoader;
 use OpenDxp\Model\DataObject;
 use OpenDxp\Model\DataObject\ClassDefinition;
+use Override;
+use Symfony\Contracts\Service\Attribute\Required;
 
 class LoadDataObject extends AbstractOperator
 {
     const LOAD_STRATEGY_ID = 'id';
+
     const LOAD_STRATEGY_PATH = 'path';
+
     const LOAD_STRATEGY_ATTRIBUTE = 'attribute';
 
     /**
@@ -61,15 +65,13 @@ class LoadDataObject extends AbstractOperator
 
     protected DataObjectLoader $dataObjectLoader;
 
-    /**
-     * @param DataObjectLoader $dataObjectLoader
-     * @required
-     */
+    #[Required]
     public function setDataObjectLoader(DataObjectLoader $dataObjectLoader)
     {
         $this->dataObjectLoader = $dataObjectLoader;
     }
 
+    #[Override]
     public function setSettings(array $settings): void
     {
         $this->loadStrategy = $settings['loadStrategy'] ?? self::LOAD_STRATEGY_ID;
@@ -82,7 +84,6 @@ class LoadDataObject extends AbstractOperator
 
     /**
      * @param mixed $inputData
-     * @param bool $dryRun
      *
      * @return array|false|mixed|null
      *
@@ -108,15 +109,11 @@ class LoadDataObject extends AbstractOperator
             $logMessage = '';
             if (empty($data) === false || $data === '0') {
                 if ($this->loadStrategy === self::LOAD_STRATEGY_PATH) {
-                    $path = trim($data);
-                    if ($path !== '/' && str_ends_with($path, '/')) {
-                        $path = rtrim($path, '/');
-                    }
-                    $object = $this->dataObjectLoader->loadByPath($path);
-                    $logMessage = 'by path `' . $path . '`';
+                    $object = $this->dataObjectLoader->loadByPath(trim((string) $data));
+                    $logMessage = 'by path `' . trim((string) $data) . '`';
                 } elseif ($this->loadStrategy === self::LOAD_STRATEGY_ID) {
-                    $object = $this->dataObjectLoader->loadById(trim($data));
-                    $logMessage = 'by id `' . trim($data) . '`';
+                    $object = $this->dataObjectLoader->loadById(trim((string) $data));
+                    $logMessage = 'by id `' . trim((string) $data) . '`';
                 } elseif ($this->loadStrategy === self::LOAD_STRATEGY_ATTRIBUTE) {
                     if ($this->attributeName) {
                         $operator = '=';
@@ -124,25 +121,25 @@ class LoadDataObject extends AbstractOperator
                         if (empty($class)) {
                             throw new InvalidConfigurationException("Class `{$this->attributeDataObjectClassId}` not found.");
                         }
-                        $className = '\\OpenDxp\\Model\\DataObject\\' . ucfirst($class->getName());
+                        $className = '\\OpenDxp\\Model\\DataObject\\' . ucfirst((string) $class->getName());
                         if ($this->partialMatch) {
                             $data = "%$data%";
                             $operator = 'LIKE';
 
                             if ($this->attributeLanguage) {
                                 $logMessage = 'by attribute partially `%s` (class `%s`, value `%s`, language `%s`)';
-                                $logMessage = sprintf($logMessage, $this->attributeName, ucfirst($class->getName()), $data, $this->attributeLanguage);
+                                $logMessage = sprintf($logMessage, $this->attributeName, ucfirst((string) $class->getName()), $data, $this->attributeLanguage);
                             } else {
                                 $logMessage = 'by attribute partially `%s` (class `%s`, value `%s`)';
-                                $logMessage = sprintf($logMessage, $this->attributeName, ucfirst($class->getName()), $data);
+                                $logMessage = sprintf($logMessage, $this->attributeName, ucfirst((string) $class->getName()), $data);
                             }
                         } else {
                             if ($this->attributeLanguage) {
                                 $logMessage = 'by attribute `%s` (class `%s`, value `%s`, language `%s`)';
-                                $logMessage = sprintf($logMessage, $this->attributeName, ucfirst($class->getName()), $data, $this->attributeLanguage);
+                                $logMessage = sprintf($logMessage, $this->attributeName, ucfirst((string) $class->getName()), $data, $this->attributeLanguage);
                             } else {
                                 $logMessage = 'by attribute `%s` (class `%s`, value `%s`)';
-                                $logMessage = sprintf($logMessage, $this->attributeName, ucfirst($class->getName()), $data);
+                                $logMessage = sprintf($logMessage, $this->attributeName, ucfirst((string) $class->getName()), $data);
                             }
                         }
                         $object = $this->dataObjectLoader->loadByAttribute($className,
@@ -166,7 +163,7 @@ class LoadDataObject extends AbstractOperator
                         $logMessage = 'Could not load data object ' . $logMessage;
                     }
                     $this->applicationLogger->warning($logMessage . ' ', [
-                        'component' => PimcoreDataImporterBundle::LOGGER_COMPONENT_PREFIX . $this->configName,
+                        'component' => OpenDxpDataImporterBundle::LOGGER_COMPONENT_PREFIX . $this->configName,
                     ]);
                 }
             }
@@ -187,14 +184,9 @@ class LoadDataObject extends AbstractOperator
     }
 
     /**
-     * @param string $inputType
-     * @param int|null $index
-     *
-     * @return string
-     *
      * @throws InvalidConfigurationException
      */
-    public function evaluateReturnType(string $inputType, int $index = null): string
+    public function evaluateReturnType(string $inputType, ?int $index = null): string
     {
         if ($inputType === TransformationDataTypeService::DEFAULT_TYPE) {
             return TransformationDataTypeService::DATA_OBJECT;
@@ -210,6 +202,7 @@ class LoadDataObject extends AbstractOperator
      *
      * @return array|false|mixed
      */
+    #[Override]
     public function generateResultPreview($inputData)
     {
         $returnScalar = false;

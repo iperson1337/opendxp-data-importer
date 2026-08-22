@@ -1,16 +1,16 @@
 <?php
 
 /**
- * Pimcore
+ * OpenDXP
  *
- * This source file is available under two different licenses:
- * - GNU General Public License version 3 (GPLv3)
- * - Pimcore Commercial License (PCL)
+ * This source file is licensed under the GNU General Public License version 3 (GPLv3).
+ *
  * Full copyright and license information is available in
  * LICENSE.md which is distributed with this source code.
  *
- *  @copyright  Copyright (c) Pimcore GmbH (http://www.pimcore.org)
- *  @license    http://www.pimcore.org/license     GPLv3 and PCL
+ * @copyright  Copyright (c) Pimcore GmbH (https://pimcore.com)
+ * @copyright  Modification Copyright (c) OpenDXP (https://www.opendxp.io)
+ * @license    https://www.gnu.org/licenses/gpl-3.0.html  GNU General Public License version 3 (GPLv3)
  */
 
 namespace OpenDxp\Bundle\DataImporterBundle\Tool;
@@ -22,8 +22,11 @@ use OpenDxp\Model\Element\ElementInterface;
 class DataObjectLoader
 {
     const CLASS_FIELD_NAME = 'classFieldName';
+
     const BRICK_NAME = 'brickName';
+
     const BRICK_ATTRIBUTE_NAME = 'brickFieldName';
+
     const BRICK_ATTRIBUTE_SEPARATOR = '.';
 
     private function isObjectBrickAttribute(string $attributeName): bool
@@ -44,7 +47,7 @@ class DataObjectLoader
     }
 
     private function getAttributeNameFromParts(array $objectBrickParts,
-                                               bool $includeClassFieldName): string
+        bool $includeClassFieldName): string
     {
         $brickName = $objectBrickParts[self::BRICK_NAME] ?? '';
         $brickAttributeName = $objectBrickParts[self::BRICK_ATTRIBUTE_NAME] ?? '';
@@ -59,12 +62,12 @@ class DataObjectLoader
     }
 
     public function loadByAttribute(string $className,
-                                    string $attributeName,
-                                    string $identifier,
-                                    string $attributeLanguage = '',
-                                    bool $includeUnpublished = false,
-                                    int $limit = 0,
-                                    string $operator = '='): ?ElementInterface
+        string $attributeName,
+        string $identifier,
+        string $attributeLanguage = '',
+        bool $includeUnpublished = false,
+        int $limit = 0,
+        string $operator = '='): ?ElementInterface
     {
         $element = null;
         $objectTypes = [DataObject::OBJECT_TYPE_VARIANT, DataObject::OBJECT_TYPE_OBJECT];
@@ -73,28 +76,36 @@ class DataObjectLoader
             $className::setHideUnpublished(false);
         }
 
-        // getList() uses named condition keys instead of the magic `getBy<Attribute>()` static
-        // getter, whose positional args shift unpredictably depending on whether the target
-        // field turns out to be localized (mismatched with $attributeLanguage crashes makeList()).
-        $conditions = [];
-        $queryFieldName = $attributeName;
-        if ($this->isObjectBrickAttribute($attributeName) === true) {
-            $objectBrickParts = $this->getObjectBrickParts($attributeName);
-            $queryFieldName = $this->getAttributeNameFromParts($objectBrickParts, false);
-            $conditions['objectbricks'] = [$objectBrickParts[self::BRICK_NAME]];
-        }
-        $conditions['condition'] = Db::get()->quoteIdentifier($queryFieldName) . ' ' . $operator . ' ' . Db::get()->quote($identifier);
-        if ($limit > 0) {
-            $conditions['limit'] = $limit;
-        }
-        $conditions['objectTypes'] = $objectTypes;
-        if (empty($attributeLanguage) === false) {
-            $conditions['locale'] = $attributeLanguage;
-        }
-        $list = $className::getList($conditions);
-        $dataObjects = $list->load();
-        if (empty($dataObjects) === false) {
-            $element = $dataObjects[0];
+        if ($this->isObjectBrickAttribute($attributeName) === false && $operator === '=') {
+            $getter = 'getBy' . $attributeName;
+            if (empty($attributeLanguage) === false) {
+                $element = $className::$getter($identifier, $attributeLanguage, $limit, 0, $objectTypes);
+            } else {
+                if (method_exists($className, $getter)) {
+                    $element = $className::$getter($identifier);
+                }
+
+                if (!$element) {
+                    $element = $className::$getter($identifier, $limit, 0, $objectTypes);
+                }
+            }
+        } else {
+            $queryFieldName = $attributeName;
+            if ($this->isObjectBrickAttribute($attributeName) === true) {
+                $objectBrickParts = $this->getObjectBrickParts($attributeName);
+                $queryFieldName = $this->getAttributeNameFromParts($objectBrickParts, false);
+                $conditions = ['objectbricks' => [$objectBrickParts[self::BRICK_NAME]]];
+            }
+            $conditions['condition'] = $queryFieldName . ' ' . $operator . ' ' . Db::get()->quote($identifier);
+            if ($limit > 0) {
+                $conditions['limit'] = $limit;
+            }
+            $conditions['objectTypes'] = $objectTypes;
+            $list = $className::getList($conditions);
+            $dataObjects = $list->load();
+            if (empty($dataObjects) === false) {
+                $element = $dataObjects[0];
+            }
         }
 
         if ($element instanceof ElementInterface) {
@@ -105,13 +116,13 @@ class DataObjectLoader
     }
 
     public function loadById(string $identifier,
-                             string $className = '\\OpenDxp\\Model\\DataObject'): ?ElementInterface
+        string $className = \OpenDxp\Model\DataObject::class): ?ElementInterface
     {
         return $className::getById((int)$identifier);
     }
 
     public function loadByPath(string $identifier,
-                               string $className = '\\OpenDxp\\Model\\DataObject'): ?ElementInterface
+        string $className = \OpenDxp\Model\DataObject::class): ?ElementInterface
     {
         return $className::getByPath($identifier);
     }

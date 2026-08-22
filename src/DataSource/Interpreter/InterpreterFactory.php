@@ -1,16 +1,16 @@
 <?php
 
 /**
- * Pimcore
+ * OpenDXP
  *
- * This source file is available under two different licenses:
- * - GNU General Public License version 3 (GPLv3)
- * - Pimcore Commercial License (PCL)
+ * This source file is licensed under the GNU General Public License version 3 (GPLv3).
+ *
  * Full copyright and license information is available in
  * LICENSE.md which is distributed with this source code.
  *
- *  @copyright  Copyright (c) Pimcore GmbH (http://www.pimcore.org)
- *  @license    http://www.pimcore.org/license     GPLv3 and PCL
+ * @copyright  Copyright (c) Pimcore GmbH (https://pimcore.com)
+ * @copyright  Modification Copyright (c) OpenDXP (https://www.opendxp.io)
+ * @license    https://www.gnu.org/licenses/gpl-3.0.html  GNU General Public License version 3 (GPLv3)
  */
 
 namespace OpenDxp\Bundle\DataImporterBundle\DataSource\Interpreter;
@@ -37,16 +37,11 @@ class InterpreterFactory
     }
 
     /**
-     * @param string $configName
-     * @param array $interpreterConfiguration
-     * @param array $processingConfiguration
-     * @param Resolver|null $resolver
-     *
      * @return InterpreterInterface
      *
      * @throws InvalidConfigurationException
      */
-    public function loadInterpreter(string $configName, array $interpreterConfiguration, array $processingConfiguration, Resolver $resolver = null)
+    public function loadInterpreter(string $configName, array $interpreterConfiguration, array $processingConfiguration, ?Resolver $resolver = null)
     {
         if (empty($interpreterConfiguration['type']) || !array_key_exists($interpreterConfiguration['type'], $this->interpreterBluePrints)) {
             throw new InvalidConfigurationException('Unknown loader type `' . ($interpreterConfiguration['type'] ?? '') . '`');

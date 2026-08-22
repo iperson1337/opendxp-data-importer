@@ -1,27 +1,27 @@
 # Installation
 ## Required Bundles
-This bundle depends on Pimcore [Datahub bundle](https://github.com/pimcore/data-hub). This needs to be installed first.
+This bundle depends on OpenDXP [Datahub bundle](https://github.com/open-dxp/data-hub-bundle). This needs to be installed first.
 
 ## Installation Process
-### For Pimcore >= 10.5
-To install Pimcore Data Importer for Pimcore 10.5 or higher, follow the three steps below:
+### For OpenDXP >= 10.5
+To install OpenDXP Data Importer for OpenDXP 10.5 or higher, follow the three steps below:
 
 1. Install the required dependencies:
 ```bash
-composer require pimcore/data-importer
+composer require open-dxp/data-importer-bundle
 ```
 
 2. Make sure the bundle is enabled in the `config/bundles.php` file. The following lines should be added:
 
 ```php
-use Pimcore\Bundle\DataImporterBundle\PimcoreDataImporterBundle;
+use OpenDxp\Bundle\DataImporterBundle\OpenDxpDataImporterBundle;
 // ...
 
 return [
     // ...
-    // make sure PimcoreDataHubBundle is added before to that list
+    // make sure OpenDxpDataHubBundle is added before to that list
     // ...
-    PimcoreDataImporterBundle::class => ['all' => true],
+    OpenDxpDataImporterBundle::class => ['all' => true],
     // ...
 ];
 ```
@@ -29,29 +29,12 @@ return [
 3. Install the bundle:
 
 ```bash
-bin/console pimcore:bundle:install PimcoreDataImporterBundle
-```
-### For Pimcore 11
-
-You need to follow the steps mentioned above and additionally run the following command:
-
-```bash
-composer require pimcore/admin-ui-classic-bundle
-```
-
-### For Older Versions
-
-To install the Data Importer bundle for older versions of Pimcore, please run the following commands instead:
-
-```bash
-composer require pimcore/data-importer
-bin/console pimcore:bundle:enable PimcoreDataImporterBundle
-bin/console pimcore:bundle:install PimcoreDataImporterBundle
+bin/console opendxp:bundle:install OpenDxpDataImporterBundle
 ```
 
 > Make sure the Datahub bundle's priority is higher than the Data Importer bundle's.
 > 
-> This can be specified as a parameter during bundle enablement or in the Pimcore extension manager.
+> This can be specified as a parameter during bundle enablement
  
 
 ## Bundle Configuration
@@ -77,7 +60,7 @@ See [Import Execution Details](04_Import_Execution_Details.md) for more informat
 #### Symfony Messenger Based
 For symfony messenger based importing, at least following configuration needs to be done in symfony configuration: 
 ```yml 
-pimcore_data_importer:
+opendxp_data_importer:
     messenger_queue_processing:
         activated: true
 ```
@@ -89,7 +72,7 @@ In addition to that, following settings are available. They all have meaningful 
 - `worker_item_count`: Count of items imported per worker message.
 - `worker_count_lifetime`: Lifetime of tmp store entry for current worker count entry. After lifetime, the value will be cleared.
 
-Messages are dispatched via `pimcore_data_import` transport. So make sure, you have
+Messages are dispatched via `opendxp_data_import` transport. So make sure, you have
 workers processing this transport when activating the messenger based queue processing.
 
 

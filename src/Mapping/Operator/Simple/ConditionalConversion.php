@@ -1,16 +1,16 @@
 <?php
 
 /**
- * Pimcore
+ * OpenDXP
  *
- * This source file is available under two different licenses:
- * - GNU General Public License version 3 (GPLv3)
- * - Pimcore Commercial License (PCL)
+ * This source file is licensed under the GNU General Public License version 3 (GPLv3).
+ *
  * Full copyright and license information is available in
  * LICENSE.md which is distributed with this source code.
  *
- *  @copyright  Copyright (c) Pimcore GmbH (http://www.pimcore.org)
- *  @license    http://www.pimcore.org/license     GPLv3 and PCL
+ * @copyright  Copyright (c) Pimcore GmbH (https://pimcore.com)
+ * @copyright  Modification Copyright (c) OpenDXP (https://www.opendxp.io)
+ * @license    https://www.gnu.org/licenses/gpl-3.0.html  GNU General Public License version 3 (GPLv3)
  */
 
 namespace OpenDxp\Bundle\DataImporterBundle\Mapping\Operator\Simple;
@@ -18,6 +18,7 @@ namespace OpenDxp\Bundle\DataImporterBundle\Mapping\Operator\Simple;
 use OpenDxp\Bundle\DataImporterBundle\Exception\InvalidConfigurationException;
 use OpenDxp\Bundle\DataImporterBundle\Mapping\Operator\AbstractOperator;
 use OpenDxp\Bundle\DataImporterBundle\Mapping\Type\TransformationDataTypeService;
+use Override;
 
 class ConditionalConversion extends AbstractOperator
 {
@@ -31,6 +32,7 @@ class ConditionalConversion extends AbstractOperator
      */
     protected $converted;
 
+    #[Override]
     public function setSettings(array $settings): void
     {
         $this->original = $settings['original'] ?? '';
@@ -39,7 +41,6 @@ class ConditionalConversion extends AbstractOperator
 
     /**
      * @param mixed $inputData
-     * @param bool $dryRun
      *
      * @return array|false|mixed|null
      */
@@ -76,7 +77,7 @@ class ConditionalConversion extends AbstractOperator
         }
     }
 
-    public function evaluateReturnType(string $inputType, int $index = null): string
+    public function evaluateReturnType(string $inputType, ?int $index = null): string
     {
         if (!in_array($inputType, [TransformationDataTypeService::DEFAULT_TYPE, TransformationDataTypeService::DEFAULT_ARRAY])) {
             throw new InvalidConfigurationException(sprintf("Unsupported input type '%s' for simple test operator at transformation position %s", $inputType, $index));

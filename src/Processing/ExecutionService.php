@@ -1,16 +1,16 @@
 <?php
 
 /**
- * Pimcore
+ * OpenDXP
  *
- * This source file is available under two different licenses:
- * - GNU General Public License version 3 (GPLv3)
- * - Pimcore Commercial License (PCL)
+ * This source file is licensed under the GNU General Public License version 3 (GPLv3).
+ *
  * Full copyright and license information is available in
  * LICENSE.md which is distributed with this source code.
  *
- *  @copyright  Copyright (c) Pimcore GmbH (http://www.pimcore.org)
- *  @license    http://www.pimcore.org/license     GPLv3 and PCL
+ * @copyright  Copyright (c) Pimcore GmbH (https://pimcore.com)
+ * @copyright  Modification Copyright (c) OpenDXP (https://www.opendxp.io)
+ * @license    https://www.gnu.org/licenses/gpl-3.0.html  GNU General Public License version 3 (GPLv3)
  */
 
 namespace OpenDxp\Bundle\DataImporterBundle\Processing;
@@ -48,8 +48,6 @@ class ExecutionService
     /**
      * @param string $configName
      *
-     * @return DateTime|null
-     *
      * @throws Exception
      */
     public function getLastExecution($configName): ?DateTime
@@ -62,7 +60,7 @@ class ExecutionService
             );
 
             return $timestamp ? date_create()->setTimestamp($timestamp) : null;
-        } catch (TableNotFoundException $exception) {
+        } catch (TableNotFoundException) {
             $this->createTableIfNotExisting();
 
             return $this->getLastExecution($configName);
@@ -77,7 +75,7 @@ class ExecutionService
                     self::EXECUTION_STORAGE_TABLE_NAME),
                 [$configName, $executionTimestamp->getTimestamp(), $executionTimestamp->getTimestamp()]
             );
-        } catch (TableNotFoundException $exception) {
+        } catch (TableNotFoundException) {
             $this->createTableIfNotExisting();
             $this->updateExecutionTimestamp($configName, $executionTimestamp);
         }
@@ -90,12 +88,12 @@ class ExecutionService
                 sprintf('SELECT lastExecutionDate FROM %s WHERE configName = ?', self::EXECUTION_STORAGE_TABLE_NAME),
                 [$configName]
             );
-        } catch (TableNotFoundException $exception) {
+        } catch (TableNotFoundException) {
             $timestamp = false;
         }
 
         if ($timestamp === false) {
-            $this->updateExecutionTimestamp($configName, new \DateTime());
+            $this->updateExecutionTimestamp($configName, new DateTime());
         }
     }
 
@@ -106,7 +104,7 @@ class ExecutionService
                 sprintf('DELETE FROM %s WHERE configName = ?', self::EXECUTION_STORAGE_TABLE_NAME),
                 [$configName]
             );
-        } catch (TableNotFoundException $exception) {
+        } catch (TableNotFoundException) {
             $this->createTableIfNotExisting();
         }
     }

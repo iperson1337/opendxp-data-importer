@@ -29,14 +29,21 @@ Their name is usually prefixed with `As`.
 - **As Array**: Converts data to an array, if not already.
 - **As Boolean**: Converts data to a boolean.
 - **As Date**: Converts data to a date, format definition necessary. 
-- **As Time**: Converts data to a time, format definition necessary. 
 - **As Gallery**: Packs a single asset, or an asset array to a gallery. 
 - **As Image Advanced**: Packs a single asset to an image advanced. 
 - **As Input Quantity Value**: Converts an array to a quantity value object for 
   input quanitity value, expects first item in array to be value, second item in array to be unit id. 
 - **As Input Quantity Value Array**: Same like `As Input Quantity Value`, but for arrays of values. Expects an array
   with sub-arrays where first item to be value and second item to be unit id each and results in an array of quantity value objects.
-- **As Numeric**: Converts data to a numeric by using `floatval`.
+- **As Numeric**: Converts data to a numeric with type casting.
+  - `Return null if empty` option:
+
+    | Input   | Output     |
+    | ------- | ---------- |
+    | 1234    | 1234       |
+    | String  | --EMPTY--  |
+    |         | --EMPTY--  |
+    | 0       | 0          |
 - **As Quantity Value**: Converts an array to a quantity value object for 
     quanitity value, expects first item in array to be value, second item in array to be unit id.
 - **As Quantity Value Array**: Same like `As Quantity Value`, but for arrays of values. Expects an array
@@ -63,8 +70,7 @@ and the second item reflects the value for the longitude attribute.
 - **Trim**: Removes leading and/or tailing white spaces from string.
 - **Static Text**: Adds a static text to the value - either prepends or appends it.
 - **Conditional Conversion**: String values are converted to other string values (e.g. '0' to '1' or 'csv-value' to 'object-value'). Multiple conversions can be configured by separating the values with pipe symbol ('|') (e.g. '0|1|2' to 'some|other|values'). An asterisk can be used as a wildcard (e.g. '0|\*' to 'no value|default' where '0' will be converted to 'no value' and all other values to 'default').
-- **ObjectField**: Extracts the value for a specified field from a DataObject. This is similar to `ObjectFieldGetter` or `AnyGetter`.
-- 
+
 #### What Operators are NOT supposed to do:
 - **Complex statistical calculations**: you possibly get an idea like that you can explode string to array and then calculate some average value, but it is wrong place to do it. Please keep the import peformance light.
 - **Assign data to data object fields**: One import is updating fields of one Data Object. If you need to update another one then please create one more import.

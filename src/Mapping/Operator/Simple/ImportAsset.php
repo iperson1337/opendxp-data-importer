@@ -1,16 +1,16 @@
 <?php
 
 /**
- * Pimcore
+ * OpenDXP
  *
- * This source file is available under two different licenses:
- * - GNU General Public License version 3 (GPLv3)
- * - Pimcore Commercial License (PCL)
+ * This source file is licensed under the GNU General Public License version 3 (GPLv3).
+ *
  * Full copyright and license information is available in
  * LICENSE.md which is distributed with this source code.
  *
- *  @copyright  Copyright (c) Pimcore GmbH (http://www.pimcore.org)
- *  @license    http://www.pimcore.org/license     GPLv3 and PCL
+ * @copyright  Copyright (c) Pimcore GmbH (https://pimcore.com)
+ * @copyright  Modification Copyright (c) OpenDXP (https://www.opendxp.io)
+ * @license    https://www.gnu.org/licenses/gpl-3.0.html  GNU General Public License version 3 (GPLv3)
  */
 
 namespace OpenDxp\Bundle\DataImporterBundle\Mapping\Operator\Simple;
@@ -18,10 +18,11 @@ namespace OpenDxp\Bundle\DataImporterBundle\Mapping\Operator\Simple;
 use OpenDxp\Bundle\DataImporterBundle\Exception\InvalidConfigurationException;
 use OpenDxp\Bundle\DataImporterBundle\Mapping\Operator\AbstractOperator;
 use OpenDxp\Bundle\DataImporterBundle\Mapping\Type\TransformationDataTypeService;
-use OpenDxp\Bundle\DataImporterBundle\PimcoreDataImporterBundle;
+use OpenDxp\Bundle\DataImporterBundle\OpenDxpDataImporterBundle;
 use OpenDxp\Model\Asset;
 use OpenDxp\Model\Element\DuplicateFullPathException;
 use OpenDxp\Model\Element\Service;
+use Override;
 
 class ImportAsset extends AbstractOperator
 {
@@ -45,6 +46,7 @@ class ImportAsset extends AbstractOperator
      */
     protected $pregMatch;
 
+    #[Override]
     public function setSettings(array $settings): void
     {
         $this->parentFolderPath = $settings['parentFolder'] ?? '/';
@@ -55,7 +57,6 @@ class ImportAsset extends AbstractOperator
 
     /**
      * @param mixed $inputData
-     * @param bool $dryRun
      *
      * @return array|false|mixed|null
      *
@@ -72,7 +73,7 @@ class ImportAsset extends AbstractOperator
         $assets = [];
 
         foreach ($inputData as $data) {
-            $fileUrl = trim($data);
+            $fileUrl = trim((string) $data);
 
             if (empty($fileUrl)) {
                 continue;
@@ -100,8 +101,8 @@ class ImportAsset extends AbstractOperator
                 $options = [
                     'http' => [
                         'method' => 'GET',
-                        'header' => 'User-Agent: pimcore-data-importer'
-                    ]
+                        'header' => 'User-Agent: opendxp-data-importer',
+                    ],
                 ];
                 $context = stream_context_create($options);
 
@@ -113,7 +114,7 @@ class ImportAsset extends AbstractOperator
                         $data = [
                             'data' => $assetData,
                             'key' => $filename,
-                            'filename' => $filename
+                            'filename' => $filename,
                         ];
                         $asset = Asset::create($parent->getId(), $data, false);
 
@@ -133,7 +134,7 @@ class ImportAsset extends AbstractOperator
                     }
                 } else {
                     $this->applicationLogger->error("Could not import asset data from `$fileUrl` ", [
-                        'component' => PimcoreDataImporterBundle::LOGGER_COMPONENT_PREFIX . $this->configName,
+                        'component' => OpenDxpDataImporterBundle::LOGGER_COMPONENT_PREFIX . $this->configName,
                     ]);
                 }
             }
@@ -182,14 +183,9 @@ class ImportAsset extends AbstractOperator
     }
 
     /**
-     * @param string $inputType
-     * @param int|null $index
-     *
-     * @return string
-     *
      * @throws InvalidConfigurationException
      */
-    public function evaluateReturnType(string $inputType, int $index = null): string
+    public function evaluateReturnType(string $inputType, ?int $index = null): string
     {
         if ($inputType === TransformationDataTypeService::DEFAULT_TYPE) {
             return TransformationDataTypeService::ASSET;
@@ -205,6 +201,7 @@ class ImportAsset extends AbstractOperator
      *
      * @return array|false|mixed
      */
+    #[Override]
     public function generateResultPreview($inputData)
     {
         $returnScalar = false;

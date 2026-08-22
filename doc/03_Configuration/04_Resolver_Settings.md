@@ -1,6 +1,6 @@
 # Resolver Settings
 
-Resolver settings are responsible to define to which Pimcore data imported data should
+Resolver settings are responsible to define to which OpenDXP data imported data should
 be imported to and consists of following parts: 
 
 <div class="image-as-lightbox"></div>
@@ -8,16 +8,16 @@ be imported to and consists of following parts:
 ![Resolver Settings](../img/resolver_settings.png)
 
 ### Class
-Define the Pimcore data object class of the imported data.
+Define the OpenDXP data object class of the imported data.
 
 ### Element Loading
-Define a strategy the importer should use for looking for existing Pimcore data objects in order
+Define a strategy the importer should use for looking for existing OpenDXP data objects in order
 to update them instead of creating new data objects.
 
 Following strategies are available: 
 
 #### Loading Strategy: `No Loading`
-Does not look for any existing Pimcore data objects. Import always creates new data objects. 
+Does not look for any existing OpenDXP data objects. Import always creates new data objects. 
 
 #### Loading Strategy: `Id`
 Look for data objects based on their id. 

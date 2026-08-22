@@ -5,7 +5,7 @@ Depending on the configuration there are different options to start an actual im
 When data source is `push`, the import process starts every time data is pushed to the corresponding
 endpoint. There is no further configuration possible or needed. 
 
-For all the other data sources, Pimcore needs a trigger to start the import process. Following triggers
+For all the other data sources, OpenDXP needs a trigger to start the import process. Following triggers
 are available. 
 
 ### Manual Execution

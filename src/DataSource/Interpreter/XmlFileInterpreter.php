@@ -1,23 +1,27 @@
 <?php
 
 /**
- * Pimcore
+ * OpenDXP
  *
- * This source file is available under two different licenses:
- * - GNU General Public License version 3 (GPLv3)
- * - Pimcore Commercial License (PCL)
+ * This source file is licensed under the GNU General Public License version 3 (GPLv3).
+ *
  * Full copyright and license information is available in
  * LICENSE.md which is distributed with this source code.
  *
- *  @copyright  Copyright (c) Pimcore GmbH (http://www.pimcore.org)
- *  @license    http://www.pimcore.org/license     GPLv3 and PCL
+ * @copyright  Copyright (c) Pimcore GmbH (https://pimcore.com)
+ * @copyright  Modification Copyright (c) OpenDXP (https://www.opendxp.io)
+ * @license    https://www.gnu.org/licenses/gpl-3.0.html  GNU General Public License version 3 (GPLv3)
  */
 
 namespace OpenDxp\Bundle\DataImporterBundle\DataSource\Interpreter;
 
+use DOMDocument;
+use DOMElement;
+use DOMNodeList;
+use DOMXpath;
 use OpenDxp\Bundle\DataImporterBundle\Exception\InvalidConfigurationException;
 use OpenDxp\Bundle\DataImporterBundle\Exception\InvalidInputException;
-use OpenDxp\Bundle\DataImporterBundle\PimcoreDataImporterBundle;
+use OpenDxp\Bundle\DataImporterBundle\OpenDxpDataImporterBundle;
 use OpenDxp\Bundle\DataImporterBundle\Preview\Model\PreviewData;
 use Symfony\Component\Config\Util\Exception\XmlParsingException;
 use Symfony\Component\Config\Util\XmlUtils;
@@ -35,7 +39,7 @@ class XmlFileInterpreter extends AbstractInterpreter
     protected $schema;
 
     /**
-     * @var \DOMDocument|null
+     * @var DOMDocument|null
      */
     protected $cachedContent = null;
 
@@ -58,9 +62,7 @@ class XmlFileInterpreter extends AbstractInterpreter
     }
 
     /**
-     * @param string $path
-     *
-     * @return \DOMNodeList
+     * @return DOMNodeList
      *
      * @throws InvalidInputException
      */
@@ -72,10 +74,10 @@ class XmlFileInterpreter extends AbstractInterpreter
             $dom = $this->cachedContent;
         }
 
-        $xpath = new \DOMXpath($dom);
+        $xpath = new DOMXpath($dom);
 
         $result = $xpath->evaluate($this->xpath);
-        if ($result instanceof \DOMNodeList) {
+        if ($result instanceof DOMNodeList) {
             return $result;
         } else {
             throw new InvalidInputException(sprintf('Item path `%s` not found.', $this->xpath));
@@ -86,7 +88,7 @@ class XmlFileInterpreter extends AbstractInterpreter
     {
         $records = $this->loadData($path);
 
-        /** @var \DOMElement $item */
+        /** @var DOMElement $item */
         foreach ($records as $item) {
             $this->processImportRow(XmlUtils::convertDomElementToArray($item));
         }
@@ -110,7 +112,7 @@ class XmlFileInterpreter extends AbstractInterpreter
         } catch (XmlParsingException $exception) {
             $message = 'Error validating XML: ' . $exception->getMessage();
             $this->applicationLogger->info($message, [
-                'component' => PimcoreDataImporterBundle::LOGGER_COMPONENT_PREFIX . $this->configName,
+                'component' => OpenDxpDataImporterBundle::LOGGER_COMPONENT_PREFIX . $this->configName,
             ]);
 
             return false;
@@ -139,7 +141,7 @@ class XmlFileInterpreter extends AbstractInterpreter
                 $readRecordNumber = $recordNumber;
             }
 
-            if (!empty($previewDataItem) && $previewDataItem instanceof \DOMElement) {
+            if (!empty($previewDataItem) && $previewDataItem instanceof DOMElement) {
                 $previewData = XmlUtils::convertDomElementToArray($previewDataItem);
 
                 $keys = array_keys($previewData);

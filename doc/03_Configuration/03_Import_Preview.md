@@ -20,6 +20,6 @@ There are two options for loading the preview file:
 - Upload an extra preview file. 
 - Copy the preview file from the configured data source (not possible with push data source).   
 
-For both options, preview files are saved per user and import configuration in Pimcores `tmp` directory and 
+For both options, preview files are saved per user and import configuration in OpenDXPs `tmp` directory and 
 should only be a small extract of the actual import files - due to loading performance and used storage space.
 

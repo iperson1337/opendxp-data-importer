@@ -1,5 +1,6 @@
 # Update Notes
 
-## Update to Version 1.10
-### General
-- Dropped support of Pimcore 10, bumped minimum requirement of `pimcore/pimcore` to `^11.2`.
+## Migration from `pimcore/data-importer-bundle` to `open-dxp/data-importer-bundle`
+* Renamed composer package to `open-dxp/data-importer-bundle`
+* Renamed top-level PHP namespace to `OpenDxp\Bundle\DataImporterBundle`
+* Renamed top-level config node to `opendxp_data_importer`

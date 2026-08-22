@@ -1,0 +1,26 @@
+flysystem:
+    storages:
+        opendxp.dataImporter.upload.storage:
+            adapter: 'local'
+            visibility: private
+            options:
+                directory: '%kernel.project_dir%/var/tmp/datahub/dataimporter/upload'
+        opendxp.dataImporter.preview.storage:
+            adapter: 'local'
+            visibility: private
+            options:
+                directory: '%kernel.project_dir%/var/tmp/datahub/dataimporter/preview'
+
+
+framework:
+    messenger:
+        transports:
+            opendxp_data_import:
+                dsn: 'doctrine://default?queue_name=opendxp_data_import'
+
+        routing:
+            'OpenDxp\Bundle\DataImporterBundle\Messenger\DataImporterMessage': opendxp_data_import
+
+opendxp_data_hub:
+    supported_types:
+        dataImporterDataObject: "OpenDxp\\Bundle\\DataImporterBundle"

@@ -41,27 +41,27 @@ services:
 
     OpenDxp\Bundle\DataImporterBundle\DataSource\Loader\AssetLoader:
         tags:
-            - { name: "pimcore.datahub.data_importer.loader", type: "asset" }
+            - { name: "opendxp.datahub.data_importer.loader", type: "asset" }
 
     OpenDxp\Bundle\DataImporterBundle\DataSource\Loader\UploadLoader:
         tags:
-            - { name: "pimcore.datahub.data_importer.loader", type: "upload" }
+            - { name: "opendxp.datahub.data_importer.loader", type: "upload" }
 
     OpenDxp\Bundle\DataImporterBundle\DataSource\Loader\HttpLoader:
         tags:
-            - { name: "pimcore.datahub.data_importer.loader", type: "http" }
+            - { name: "opendxp.datahub.data_importer.loader", type: "http" }
 
     OpenDxp\Bundle\DataImporterBundle\DataSource\Loader\SftpLoader:
         tags:
-            - { name: "pimcore.datahub.data_importer.loader", type: "sftp" }
+            - { name: "opendxp.datahub.data_importer.loader", type: "sftp" }
 
     OpenDxp\Bundle\DataImporterBundle\DataSource\Loader\PushLoader:
         tags:
-            - { name: "pimcore.datahub.data_importer.loader", type: "push" }
+            - { name: "opendxp.datahub.data_importer.loader", type: "push" }
 
     OpenDxp\Bundle\DataImporterBundle\DataSource\Loader\SqlLoader:
         tags:
-            - { name: "pimcore.datahub.data_importer.loader", type: "sql" }
+            - { name: "opendxp.datahub.data_importer.loader", type: "sql" }
 
     OpenDxp\Bundle\DataImporterBundle\DataSource\Interpreter\DeltaChecker\DeltaChecker: ~
 
@@ -72,115 +72,114 @@ services:
             - [ setLogger, [ '@logger' ] ]
         tags:
             - { name: monolog.logger, channel: 'DATA-IMPORTER' }
-            - { name: "pimcore.datahub.data_importer.interpreter", type: "csv" }
+            - { name: "opendxp.datahub.data_importer.interpreter", type: "csv" }
 
     OpenDxp\Bundle\DataImporterBundle\DataSource\Interpreter\XlsxFileInterpreter:
         calls:
             - [ setLogger, [ '@logger' ] ]
         tags:
             - { name: monolog.logger, channel: 'DATA-IMPORTER' }
-            - { name: "pimcore.datahub.data_importer.interpreter", type: "xlsx" }
+            - { name: "opendxp.datahub.data_importer.interpreter", type: "xlsx" }
 
     OpenDxp\Bundle\DataImporterBundle\DataSource\Interpreter\JsonFileInterpreter:
         calls:
             - [ setLogger, [ '@logger' ] ]
         tags:
             - { name: monolog.logger, channel: 'DATA-IMPORTER' }
-            - { name: "pimcore.datahub.data_importer.interpreter", type: "json" }
+            - { name: "opendxp.datahub.data_importer.interpreter", type: "json" }
 
     OpenDxp\Bundle\DataImporterBundle\DataSource\Interpreter\XmlFileInterpreter:
         calls:
             - [ setLogger, [ '@logger' ] ]
         tags:
             - { name: monolog.logger, channel: 'DATA-IMPORTER' }
-            - { name: "pimcore.datahub.data_importer.interpreter", type: "xml" }
+            - { name: "opendxp.datahub.data_importer.interpreter", type: "xml" }
 
     OpenDxp\Bundle\DataImporterBundle\DataSource\Interpreter\SqlFileInterpreter:
         calls:
             - [ setLogger, [ '@logger' ] ]
         tags:
             - { name: monolog.logger, channel: 'DATA-IMPORTER' }
-            - { name: "pimcore.datahub.data_importer.interpreter", type: "sql" }
+            - { name: "opendxp.datahub.data_importer.interpreter", type: "sql" }
 
     OpenDxp\Bundle\DataImporterBundle\Cleanup\CleanupStrategyFactory: ~
 
     OpenDxp\Bundle\DataImporterBundle\Cleanup\DeleteStrategy:
         tags:
-            - { name: "pimcore.datahub.data_importer.cleanup", type: "delete" }
+            - { name: "opendxp.datahub.data_importer.cleanup", type: "delete" }
 
     OpenDxp\Bundle\DataImporterBundle\Cleanup\UnpublishStrategy:
         tags:
-            - { name: "pimcore.datahub.data_importer.cleanup", type: "unpublish" }
+            - { name: "opendxp.datahub.data_importer.cleanup", type: "unpublish" }
 
     OpenDxp\Bundle\DataImporterBundle\Resolver\ResolverFactory: ~
     OpenDxp\Bundle\DataImporterBundle\Resolver\Resolver: ~
 
     OpenDxp\Bundle\DataImporterBundle\Resolver\Load\IdStrategy:
         tags:
-            - { name: "pimcore.datahub.data_importer.resolver.load", type: "id" }
+            - { name: "opendxp.datahub.data_importer.resolver.load", type: "id" }
 
     OpenDxp\Bundle\DataImporterBundle\Resolver\Load\PathStrategy:
         tags:
-            - { name: "pimcore.datahub.data_importer.resolver.load", type: "path" }
+            - { name: "opendxp.datahub.data_importer.resolver.load", type: "path" }
 
     OpenDxp\Bundle\DataImporterBundle\Resolver\Load\AttributeStrategy:
         tags:
-            - { name: "pimcore.datahub.data_importer.resolver.load", type: "attribute" }
+            - { name: "opendxp.datahub.data_importer.resolver.load", type: "attribute" }
 
     OpenDxp\Bundle\DataImporterBundle\Resolver\Load\NotLoadStrategy:
         tags:
-            - { name: "pimcore.datahub.data_importer.resolver.load", type: "notLoad" }
+            - { name: "opendxp.datahub.data_importer.resolver.load", type: "notLoad" }
 
     OpenDxp\Bundle\DataImporterBundle\Resolver\Factory\MultiAttributeConfigurationFactory: ~
 
     OpenDxp\Bundle\DataImporterBundle\Resolver\Load\MultiAttributeLoadStrategy:
         tags:
-            - { name: "pimcore.datahub.data_importer.resolver.load", type: "multiAttribute" }
-
+            - { name: "opendxp.datahub.data_importer.resolver.load", type: "multiAttribute" }
 
     OpenDxp\Bundle\DataImporterBundle\Resolver\Location\FindParentStrategy:
         tags:
-            - { name: "pimcore.datahub.data_importer.resolver.location", type: "findParent" }
+            - { name: "opendxp.datahub.data_importer.resolver.location", type: "findParent" }
 
     OpenDxp\Bundle\DataImporterBundle\Resolver\Location\FindOrCreateFolderStrategy:
         tags:
-            - { name: "pimcore.datahub.data_importer.resolver.location", type: "findOrCreateFolder" }
+            - { name: "opendxp.datahub.data_importer.resolver.location", type: "findOrCreateFolder" }
 
     OpenDxp\Bundle\DataImporterBundle\Resolver\Location\NoChangeStrategy:
         tags:
-            - { name: "pimcore.datahub.data_importer.resolver.location", type: "noChange" }
+            - { name: "opendxp.datahub.data_importer.resolver.location", type: "noChange" }
 
     OpenDxp\Bundle\DataImporterBundle\Resolver\Location\StaticPathStrategy:
         tags:
-            - { name: "pimcore.datahub.data_importer.resolver.location", type: "staticPath" }
+            - { name: "opendxp.datahub.data_importer.resolver.location", type: "staticPath" }
 
     OpenDxp\Bundle\DataImporterBundle\Resolver\Location\DoNotCreateStrategy:
         tags:
-            - { name: "pimcore.datahub.data_importer.resolver.location", type: "doNotCreate" }
+            - { name: "opendxp.datahub.data_importer.resolver.location", type: "doNotCreate" }
 
     OpenDxp\Bundle\DataImporterBundle\Resolver\Location\FindParentAndCreateFolderStrategy:
         tags:
-            - { name: "pimcore.datahub.data_importer.resolver.location", type: "findParentAndCreateFolder" }
+            - { name: "opendxp.datahub.data_importer.resolver.location", type: "findParentAndCreateFolder" }
 
     OpenDxp\Bundle\DataImporterBundle\Resolver\Publish\AlwaysPublishStrategy:
         tags:
-            - { name: "pimcore.datahub.data_importer.resolver.publish", type: "alwaysPublish" }
+            - { name: "opendxp.datahub.data_importer.resolver.publish", type: "alwaysPublish" }
 
     OpenDxp\Bundle\DataImporterBundle\Resolver\Publish\AttributeBasedStrategy:
         tags:
-            - { name: "pimcore.datahub.data_importer.resolver.publish", type: "attributeBased" }
+            - { name: "opendxp.datahub.data_importer.resolver.publish", type: "attributeBased" }
 
     OpenDxp\Bundle\DataImporterBundle\Resolver\Publish\NoChangePublishNewStrategy:
         tags:
-            - { name: "pimcore.datahub.data_importer.resolver.publish", type: "noChangePublishNew" }
+            - { name: "opendxp.datahub.data_importer.resolver.publish", type: "noChangePublishNew" }
 
     OpenDxp\Bundle\DataImporterBundle\Resolver\Publish\NoChangeUnpublishNewStrategy:
         tags:
-            - { name: "pimcore.datahub.data_importer.resolver.publish", type: "noChangeUnpublishNew" }
+            - { name: "opendxp.datahub.data_importer.resolver.publish", type: "noChangeUnpublishNew" }
 
     OpenDxp\Bundle\DataImporterBundle\Resolver\Factory\DataObjectFactory:
         tags:
-            - { name: "pimcore.datahub.data_importer.resolver.factory", type: "dataObject" }
+            - { name: "opendxp.datahub.data_importer.resolver.factory", type: "dataObject" }
 
 
     OpenDxp\Bundle\DataImporterBundle\Processing\ImportProcessingService:
@@ -204,7 +203,7 @@ services:
         public: true
         arguments:
             # fetch the bundle via expression language
-            $bundle: "@=service('kernel').getBundle('PimcoreDataImporterBundle')"
+            $bundle: "@=service('kernel').getBundle('OpenDxpDataImporterBundle')"
 
 
     OpenDxp\Bundle\DataImporterBundle\Messenger\DataImporterHandler:

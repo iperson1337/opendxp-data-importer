@@ -1,20 +1,21 @@
 <?php
 
 /**
- * Pimcore
+ * OpenDXP
  *
- * This source file is available under two different licenses:
- * - GNU General Public License version 3 (GPLv3)
- * - Pimcore Commercial License (PCL)
+ * This source file is licensed under the GNU General Public License version 3 (GPLv3).
+ *
  * Full copyright and license information is available in
  * LICENSE.md which is distributed with this source code.
  *
- *  @copyright  Copyright (c) Pimcore GmbH (http://www.pimcore.org)
- *  @license    http://www.pimcore.org/license     GPLv3 and PCL
+ * @copyright  Copyright (c) Pimcore GmbH (https://pimcore.com)
+ * @copyright  Modification Copyright (c) OpenDXP (https://www.opendxp.io)
+ * @license    https://www.gnu.org/licenses/gpl-3.0.html  GNU General Public License version 3 (GPLv3)
  */
 
 namespace OpenDxp\Bundle\DataImporterBundle\Controller;
 
+use const JSON_ERROR_NONE;
 use Cron\CronExpression;
 use Exception;
 use League\Flysystem\FilesystemOperator;
@@ -41,7 +42,7 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Attribute\Route;
 
-#[Route('/admin/pimcoredataimporter/dataobject/config')]
+#[Route('/admin/opendxpdataimporter/dataobject/config')]
 class ConfigDataObjectController extends UserAwareController
 {
     use JsonHelperTrait;
@@ -55,19 +56,16 @@ class ConfigDataObjectController extends UserAwareController
 
     /**
      * ConfigDataObjectController constructor.
-     *
-     * @param PreviewService $previewService
      */
     public function __construct(PreviewService $previewService)
     {
         $this->previewService = $previewService;
     }
 
-    #[Route('/save')]
     /**
-    *
-    * @throws Exception
-    */
+     * @throws Exception
+     */
+    #[Route('/save')]
     public function saveAction(Request $request): ?JsonResponse
     {
         $this->checkPermission(self::CONFIG_NAME);
@@ -83,7 +81,7 @@ class ConfigDataObjectController extends UserAwareController
             $dataDecoded = json_decode($data, true);
 
             $name = $dataDecoded['general']['name'];
-            $dataDecoded['general']['active'] = $dataDecoded['general']['active'] ?? false;
+            $dataDecoded['general']['active'] ??= false;
             $config = Dao::getByName($name);
             if (!$config->isAllowed('update')) {
                 throw $this->createAccessDeniedHttpException();
@@ -104,10 +102,6 @@ class ConfigDataObjectController extends UserAwareController
     }
 
     /**
-     * @param string $configName
-     * @param array $config
-     * @param InterpreterFactory $interpreterFactory
-     *
      * @return array
      */
     protected function loadAvailableColumnHeaders(
@@ -115,7 +109,7 @@ class ConfigDataObjectController extends UserAwareController
         array $config,
         InterpreterFactory $interpreterFactory
     ) {
-        $previewFilePath = $this->previewService->getLocalPreviewFile($configName, $this->getPimcoreUser());
+        $previewFilePath = $this->previewService->getLocalPreviewFile($configName, $this->getOpenDxpUser());
         if (is_file($previewFilePath)) {
             try {
                 $interpreter = $interpreterFactory->loadInterpreter($configName, $config['interpreterConfig'], $config['processingConfig']);
@@ -124,7 +118,7 @@ class ConfigDataObjectController extends UserAwareController
 
                 // Validate if the column headers are valid JSON. Otherwise take care of the preview file to be deleted.
                 if (!$this->isValidJson($columnHeaders)) {
-                    throw new \Exception('Invalid column headers.');
+                    throw new Exception('Invalid column headers.');
                 }
 
                 return $columnHeaders;
@@ -140,20 +134,13 @@ class ConfigDataObjectController extends UserAwareController
     {
         json_encode($array);
 
-        return json_last_error() === \JSON_ERROR_NONE;
+        return json_last_error() === JSON_ERROR_NONE;
     }
 
-    #[Route('/get')]
     /**
-    *
-    * @param Request $request
-    * @param ConfigurationPreparationService $configurationPreparationService
-    * @param InterpreterFactory $interpreterFactory
-    *
-    * @return JsonResponse
-    *
-    * @throws Exception
-    */
+     * @throws Exception
+     */
+    #[Route('/get')]
     public function getAction(
         Request $request,
         ConfigurationPreparationService $configurationPreparationService,
@@ -170,20 +157,15 @@ class ConfigDataObjectController extends UserAwareController
                 'configuration' => $config,
                 'userPermissions' => $config['userPermissions'],
                 'modificationDate' => Dao::getConfigModificationDate(),
-                'columnHeaders' => $this->loadAvailableColumnHeaders($name, $config, $interpreterFactory)
+                'columnHeaders' => $this->loadAvailableColumnHeaders($name, $config, $interpreterFactory),
             ]
         );
     }
 
-    #[Route('/upload-preview', methods: ['POST'])]
     /**
-    *
-    * @param Request $request
-    *
-    * @return JsonResponse
-    *
-    * @throws Exception
-    */
+     * @throws Exception
+     */
+    #[Route('/upload-preview', methods: ['POST'])]
     public function uploadPreviewDataAction(Request $request)
     {
         try {
@@ -204,7 +186,7 @@ class ConfigDataObjectController extends UserAwareController
                 throw new Exception('File it too big for preview file, please create a smaller one');
             }
 
-            $this->previewService->writePreviewFile($request->query->get('config_name'), $sourcePath, $this->getPimcoreUser());
+            $this->previewService->writePreviewFile($request->query->get('config_name'), $sourcePath, $this->getOpenDxpUser());
             @unlink($sourcePath);
 
             return new JsonResponse(['success' => true]);
@@ -218,22 +200,15 @@ class ConfigDataObjectController extends UserAwareController
         }
     }
 
-    #[Route('/copy-preview', methods: ['POST'])]
     /**
-    *
-    * @param Request $request
-    * @param ConfigurationPreparationService $configurationPreparationService
-    * @param DataLoaderFactory $dataLoaderFactory
-    *
-    * @return JsonResponse
-    *
-    * @throws Exception
-    */
+     * @throws Exception
+     */
+    #[Route('/copy-preview', methods: ['POST'])]
     public function copyPreviewDataAction(
         Request $request,
         ConfigurationPreparationService $configurationPreparationService,
         DataLoaderFactory $dataLoaderFactory
-    ) {
+    ): JsonResponse {
         try {
             $configName = $request->request->get('config_name');
             $currentConfig = $request->request->get('current_config');
@@ -257,7 +232,7 @@ class ConfigDataObjectController extends UserAwareController
                 throw new Exception('File it too big for preview file, please create a smaller one');
             }
 
-            $this->previewService->writePreviewFile($configName, $sourcePath, $this->getPimcoreUser());
+            $this->previewService->writePreviewFile($configName, $sourcePath, $this->getOpenDxpUser());
 
             $loader->cleanup();
 
@@ -272,24 +247,16 @@ class ConfigDataObjectController extends UserAwareController
         }
     }
 
-    #[Route('/load-preview-data', methods: ['POST'])]
     /**
-    *
-    * @param Request $request
-    * @param ConfigurationPreparationService $configurationPreparationService
-    * @param InterpreterFactory $interpreterFactory
-    * @param Translator $translator
-    *
-    * @return JsonResponse
-    *
-    * @throws Exception
-    */
+     * @throws Exception
+     */
+    #[Route('/load-preview-data', methods: ['POST'])]
     public function loadDataPreviewAction(
         Request $request,
         ConfigurationPreparationService $configurationPreparationService,
         InterpreterFactory $interpreterFactory,
         Translator $translator
-    ) {
+    ): JsonResponse {
         $configName = $request->request->get('config_name');
         $currentConfig = $request->request->get('current_config');
         $recordNumber = $request->request->getInt('record_number');
@@ -297,7 +264,7 @@ class ConfigDataObjectController extends UserAwareController
         $dataPreview = null;
         $hasData = false;
         $errorMessage = '';
-        $previewFilePath = $this->previewService->getLocalPreviewFile($configName, $this->getPimcoreUser());
+        $previewFilePath = $this->previewService->getLocalPreviewFile($configName, $this->getOpenDxpUser());
         $dataPreviewData = [];
         if (is_file($previewFilePath)) {
             $config = $configurationPreparationService->prepareConfiguration($configName, $currentConfig);
@@ -320,15 +287,16 @@ class ConfigDataObjectController extends UserAwareController
                     $preview = $dataPreview->getDataPreview();
                     if (!$this->isValidJson($preview)) {
                         unlink($previewFilePath);
-                        throw new \Exception('Invalid data preview. Deleted preview data.');
+
+                        throw new Exception('Invalid data preview. Deleted preview data.');
                     }
                     $dataPreviewData = $preview;
                 } else {
-                    $errorMessage = $translator->trans('plugin_pimcore_datahub_data_importer_configpanel_preview_error_invalid_file', [], 'admin');
+                    $errorMessage = $translator->trans('plugin_opendxp_datahub_data_importer_configpanel_preview_error_invalid_file', [], 'admin');
                 }
             } catch (Exception $e) {
                 Logger::error($e);
-                $errorMessage = $translator->trans('plugin_pimcore_datahub_data_importer_configpanel_preview_error_prefix', [], 'admin') . ': ' . $e->getMessage();
+                $errorMessage = $translator->trans('plugin_opendxp_datahub_data_importer_configpanel_preview_error_prefix', [], 'admin') . ': ' . $e->getMessage();
             }
         }
 
@@ -336,62 +304,46 @@ class ConfigDataObjectController extends UserAwareController
             'dataPreview' => $dataPreviewData,
             'previewRecordIndex' => $dataPreview ? $dataPreview->getRecordNumber() : 0,
             'hasData' => $hasData,
-            'errorMessage' => $errorMessage
+            'errorMessage' => $errorMessage,
         ]);
     }
 
-    #[Route('/load-column-headers', methods: ['POST'])]
     /**
-    *
-    * @param Request $request
-    * @param ConfigurationPreparationService $configurationPreparationService
-    * @param InterpreterFactory $interpreterFactory
-    *
-    * @return JsonResponse
-    *
-    * @throws Exception
-    */
+     * @throws Exception
+     */
+    #[Route('/load-column-headers', methods: ['POST'])]
     public function loadAvailableColumnHeadersAction(
         Request $request,
         ConfigurationPreparationService $configurationPreparationService,
         InterpreterFactory $interpreterFactory
-    ) {
+    ): JsonResponse {
         $configName = $request->request->get('config_name');
         $currentConfig = $request->request->get('current_config');
         $config = $configurationPreparationService->prepareConfiguration($configName, $currentConfig);
 
         return new JsonResponse([
-            'columnHeaders' => $this->loadAvailableColumnHeaders($configName, $config, $interpreterFactory)
+            'columnHeaders' => $this->loadAvailableColumnHeaders($configName, $config, $interpreterFactory),
         ]);
     }
 
-    #[Route('/load-transformation-result', methods: ['POST'])]
     /**
-    *
-    * @param Request $request
-    * @param ConfigurationPreparationService $configurationPreparationService
-    * @param MappingConfigurationFactory $factory
-    * @param InterpreterFactory $interpreterFactory
-    * @param ImportProcessingService $importProcessingService
-    *
-    * @return JsonResponse
-    *
-    * @throws InvalidConfigurationException|Exception
-    */
+     * @throws InvalidConfigurationException|Exception
+     */
+    #[Route('/load-transformation-result', methods: ['POST'])]
     public function loadTransformationResultPreviewsAction(
         Request $request,
         ConfigurationPreparationService $configurationPreparationService,
         MappingConfigurationFactory $factory,
         InterpreterFactory $interpreterFactory,
         ImportProcessingService $importProcessingService
-    ) {
+    ): JsonResponse {
         $configName = $request->request->get('config_name');
         $currentConfig = $request->request->get('current_config');
         $recordNumber = $request->request->getInt('current_preview_record');
 
         $config = $configurationPreparationService->prepareConfiguration($configName, $currentConfig);
 
-        $previewFilePath = $this->previewService->getLocalPreviewFile($configName, $this->getPimcoreUser());
+        $previewFilePath = $this->previewService->getLocalPreviewFile($configName, $this->getOpenDxpUser());
         $importDataRow = [];
         $transformationResults = [];
         $errorMessage = '';
@@ -416,24 +368,16 @@ class ConfigDataObjectController extends UserAwareController
 
         return new JsonResponse([
             'transformationResultPreviews' => $transformationResults,
-            'errorMessage' => $errorMessage
+            'errorMessage' => $errorMessage,
         ]);
     }
 
     #[Route('/calculate-transformation-result-type', methods: ['POST'])]
-    /**
-    *
-    * @param Request $request
-    * @param MappingConfigurationFactory $factory
-    * @param ImportProcessingService $importProcessingService
-    *
-    * @return JsonResponse
-    */
     public function calculateTransformationResultTypeAction(
         Request $request,
         MappingConfigurationFactory $factory,
         ImportProcessingService $importProcessingService
-    ) {
+    ): JsonResponse {
         try {
             $currentConfig = json_decode(
                 $request->request->get('current_config'),
@@ -450,17 +394,11 @@ class ConfigDataObjectController extends UserAwareController
         }
     }
 
-    #[Route('/load-class-attributes', methods: ['GET'])]
     /**
-    *
-    * @param Request $request
-    * @param TransformationDataTypeService $transformationDataTypeService
-    *
-    * @return JsonResponse
-    *
-    * @throws Exception
-    */
-    public function loadDataObjectAttributesAction(Request $request, TransformationDataTypeService $transformationDataTypeService)
+     * @throws Exception
+     */
+    #[Route('/load-class-attributes', methods: ['GET'])]
+    public function loadDataObjectAttributesAction(Request $request, TransformationDataTypeService $transformationDataTypeService): JsonResponse
     {
         $classId = $request->query->get('class_id');
         if (empty($classId)) {
@@ -475,19 +413,12 @@ class ConfigDataObjectController extends UserAwareController
         }
 
         return new JsonResponse([
-            'attributes' => $transformationDataTypeService->getPimcoreDataTypes($classId, $transformationTargetType, $includeSystemRead, $includeSystemWrite, $loadAdvancedRelations)
+            'attributes' => $transformationDataTypeService->getOpenDxpDataTypes($classId, $transformationTargetType, $includeSystemRead, $includeSystemWrite, $loadAdvancedRelations),
         ]);
     }
 
     #[Route('/load-class-classificationstore-attributes', methods: ['GET'])]
-    /**
-    *
-    * @param Request $request
-    * @param TransformationDataTypeService $transformationDataTypeService
-    *
-    * @return JsonResponse
-    */
-    public function loadDataObjectClassificationStoreAttributesAction(Request $request, TransformationDataTypeService $transformationDataTypeService)
+    public function loadDataObjectClassificationStoreAttributesAction(Request $request, TransformationDataTypeService $transformationDataTypeService): JsonResponse
     {
         $classId = $request->query->get('class_id');
         if (empty($classId)) {
@@ -495,34 +426,28 @@ class ConfigDataObjectController extends UserAwareController
         }
 
         return new JsonResponse([
-            'attributes' => $transformationDataTypeService->getClassificationStoreAttributes($classId)
+            'attributes' => $transformationDataTypeService->getClassificationStoreAttributes($classId),
         ]);
     }
 
-    #[Route('/load-class-classificationstore-keys', methods: ['GET'])]
     /**
-    *
-    * @param Request $request
-    * @param ClassificationStoreDataTypeService $classificationStoreDataTypeService
-    *
-    * @return JsonResponse
-    *
-    * @throws Exception
-    */
-    public function loadDataObjectClassificationStoreKeysAction(Request $request, ClassificationStoreDataTypeService $classificationStoreDataTypeService)
+     * @throws Exception
+     */
+    #[Route('/load-class-classificationstore-keys', methods: ['GET'])]
+    public function loadDataObjectClassificationStoreKeysAction(Request $request, ClassificationStoreDataTypeService $classificationStoreDataTypeService): JsonResponse
     {
         $sortParams = QueryParams::extractSortingSettings(['sort' => $request->query->get('sort')]);
 
         $list = $classificationStoreDataTypeService->listClassificationStoreKeyList(
-            strip_tags($request->query->get('class_id')),
-            strip_tags($request->query->get('field_name')),
-            strip_tags($request->query->get('transformation_result_type')),
+            strip_tags((string) $request->query->get('class_id')),
+            strip_tags((string) $request->query->get('field_name')),
+            strip_tags((string) $request->query->get('transformation_result_type')),
             $sortParams['orderKey'] ?? 'name',
             $sortParams['order'] ?? 'ASC',
             $request->query->getInt('start'),
             $request->query->getInt('limit'),
-            strip_tags($request->query->get('searchfilter')),
-            strip_tags($request->query->get('filter'))
+            strip_tags((string) $request->query->get('searchfilter')),
+            strip_tags((string) $request->query->get('filter'))
         );
 
         $data = [];
@@ -547,23 +472,18 @@ class ConfigDataObjectController extends UserAwareController
         return new JsonResponse([
             'success' => true,
             'data' => $data,
-            'total' => $list->getTotalCount()
+            'total' => $list->getTotalCount(),
         ]);
     }
 
-    #[Route('/load-class-classificationstore-key-name', methods: ['GET'])]
     /**
-    *
-    * @param Request $request
-    *
-    * @return JsonResponse
-    *
-    * @throws Exception
-    */
-    public function loadDataObjectClassificationStoreKeyNameAction(Request $request)
+     * @throws Exception
+     */
+    #[Route('/load-class-classificationstore-key-name', methods: ['GET'])]
+    public function loadDataObjectClassificationStoreKeyNameAction(Request $request): JsonResponse
     {
         $keyId = $request->query->get('key_id');
-        $keyParts = explode('-', $keyId);
+        $keyParts = explode('-', (string) $keyId);
         if (count($keyParts) === 2) {
             $keyGroupRelation = DataObject\Classificationstore\KeyGroupRelation::getByGroupAndKeyId((int)$keyParts[0], (int)$keyParts[1]);
             if ($keyGroupRelation) {
@@ -572,44 +492,30 @@ class ConfigDataObjectController extends UserAwareController
                 if ($group) {
                     return new JsonResponse([
                         'groupName' => $group->getName(),
-                        'keyName' => $keyGroupRelation->getName()
+                        'keyName' => $keyGroupRelation->getName(),
                     ]);
                 }
             }
         }
 
         return new JsonResponse([
-            'keyId' => $keyId
+            'keyId' => $keyId,
         ]);
     }
 
     #[Route('/start-import', methods: ['PUT'])]
-    /**
-    *
-    * @param Request $request
-    * @param ImportPreparationService $importPreparationService
-    *
-    * @return JsonResponse
-    */
-    public function startBatchImportAction(Request $request, ImportPreparationService $importPreparationService)
+    public function startBatchImportAction(Request $request, ImportPreparationService $importPreparationService): JsonResponse
     {
         $configName = $request->request->get('config_name');
         $success = $importPreparationService->prepareImport($configName, true);
 
         return new JsonResponse([
-            'success' => $success
+            'success' => $success,
         ]);
     }
 
     #[Route('/check-import-progress', methods: ['GET'])]
-    /**
-    *
-    * @param Request $request
-    * @param ImportProcessingService $importProcessingService
-    *
-    * @return JsonResponse
-    */
-    public function checkImportProgressAction(Request $request, ImportProcessingService $importProcessingService)
+    public function checkImportProgressAction(Request $request, ImportProcessingService $importProcessingService): JsonResponse
     {
         $configName = $request->query->get('config_name');
 
@@ -617,13 +523,7 @@ class ConfigDataObjectController extends UserAwareController
     }
 
     #[Route('/check-crontab', methods: ['GET'])]
-    /**
-    *
-    * @param Request $request
-    *
-    * @return JsonResponse
-    */
-    public function isCronExpressionValidAction(Request $request)
+    public function isCronExpressionValidAction(Request $request): JsonResponse
     {
         $message = '';
         $success = true;
@@ -639,39 +539,26 @@ class ConfigDataObjectController extends UserAwareController
 
         return new JsonResponse([
             'success' => $success,
-            'message' => $message
+            'message' => $message,
         ]);
     }
 
     #[Route('/cancel-execution', methods: ['PUT'])]
-    /**
-    *
-    * @param Request $request
-    * @param ImportProcessingService $importProcessingService
-    *
-    * @return JsonResponse
-    */
-    public function cancelExecutionAction(Request $request, ImportProcessingService $importProcessingService)
+    public function cancelExecutionAction(Request $request, ImportProcessingService $importProcessingService): JsonResponse
     {
         $configName = $request->request->get('config_name');
         $importProcessingService->cancelImportAndCleanupQueue($configName);
 
         return new JsonResponse([
-            'success' => true
+            'success' => true,
         ]);
     }
 
-    #[Route('/upload-import-file', methods: ['POST'])]
     /**
-    *
-    * @param Request $request
-    * @param FilesystemOperator $pimcoreDataImporterUploadStorage
-    *
-    * @return JsonResponse
-    *
-    * @throws \League\Flysystem\FilesystemException
-    */
-    public function uploadImportFileAction(Request $request, FilesystemOperator $pimcoreDataImporterUploadStorage)
+     * @throws \League\Flysystem\FilesystemException
+     */
+    #[Route('/upload-import-file', methods: ['POST'])]
+    public function uploadImportFileAction(Request $request, FilesystemOperator $opendxpDataImporterUploadStorage)
     {
         try {
             if (array_key_exists('Filedata', $_FILES)) {
@@ -682,7 +569,7 @@ class ConfigDataObjectController extends UserAwareController
             }
 
             $target = $this->getImportFilePath($request->query->get('config_name'));
-            $pimcoreDataImporterUploadStorage->write($target, file_get_contents($sourcePath));
+            $opendxpDataImporterUploadStorage->write($target, file_get_contents($sourcePath));
 
             @unlink($sourcePath);
 
@@ -698,10 +585,6 @@ class ConfigDataObjectController extends UserAwareController
     }
 
     /**
-     * @param string $configName
-     *
-     * @return string
-     *
      * @throws Exception
      */
     protected function getImportFilePath(string $configName): string
@@ -717,24 +600,16 @@ class ConfigDataObjectController extends UserAwareController
     }
 
     #[Route('/has-import-file-uploaded', methods: ['GET'])]
-    /**
-    *
-    * @param Request $request
-    * @param Translator $translator
-    * @param FilesystemOperator $pimcoreDataImporterUploadStorage
-    *
-    * @return JsonResponse
-    */
-    public function hasImportFileUploadedAction(Request $request, Translator $translator, FilesystemOperator $pimcoreDataImporterUploadStorage)
+    public function hasImportFileUploadedAction(Request $request, Translator $translator, FilesystemOperator $opendxpDataImporterUploadStorage): JsonResponse
     {
         try {
             $importFile = $this->getImportFilePath($request->query->get('config_name'));
 
-            if ($pimcoreDataImporterUploadStorage->fileExists($importFile)) {
-                return new JsonResponse(['success' => true, 'filePath' => $importFile, 'message' => $translator->trans('plugin_pimcore_datahub_data_importer_configpanel_type_upload_exists', [], 'admin')]);
+            if ($opendxpDataImporterUploadStorage->fileExists($importFile)) {
+                return new JsonResponse(['success' => true, 'filePath' => $importFile, 'message' => $translator->trans('plugin_opendxp_datahub_data_importer_configpanel_type_upload_exists', [], 'admin')]);
             }
 
-            return new JsonResponse(['success' => false, 'message' => $translator->trans('plugin_pimcore_datahub_data_importer_configpanel_type_upload_not_exists', [], 'admin')]);
+            return new JsonResponse(['success' => false, 'message' => $translator->trans('plugin_opendxp_datahub_data_importer_configpanel_type_upload_not_exists', [], 'admin')]);
         } catch (Exception $e) {
             Logger::error($e);
 
@@ -746,12 +621,6 @@ class ConfigDataObjectController extends UserAwareController
     }
 
     #[Route('/load-unit-data', methods: ['GET'])]
-    /**
-    *
-    * @param Request $request
-    *
-    * @return JsonResponse
-    */
     public function loadUnitDataAction(Request $request): JsonResponse
     {
         $unitList = new Unit\Listing();

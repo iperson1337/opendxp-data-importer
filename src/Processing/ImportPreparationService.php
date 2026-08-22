@@ -1,38 +1,40 @@
 <?php
 
 /**
- * Pimcore
+ * OpenDXP
  *
- * This source file is available under two different licenses:
- * - GNU General Public License version 3 (GPLv3)
- * - Pimcore Commercial License (PCL)
+ * This source file is licensed under the GNU General Public License version 3 (GPLv3).
+ *
  * Full copyright and license information is available in
  * LICENSE.md which is distributed with this source code.
  *
- *  @copyright  Copyright (c) Pimcore GmbH (http://www.pimcore.org)
- *  @license    http://www.pimcore.org/license     GPLv3 and PCL
+ * @copyright  Copyright (c) Pimcore GmbH (https://pimcore.com)
+ * @copyright  Modification Copyright (c) OpenDXP (https://www.opendxp.io)
+ * @license    https://www.gnu.org/licenses/gpl-3.0.html  GNU General Public License version 3 (GPLv3)
  */
 
 namespace OpenDxp\Bundle\DataImporterBundle\Processing;
 
 use DateTime;
+use Exception;
+use OpenDxp\Bundle\ApplicationLoggerBundle\ApplicationLogger;
 use OpenDxp\Bundle\DataImporterBundle\DataSource\Interpreter\InterpreterFactory;
 use OpenDxp\Bundle\DataImporterBundle\DataSource\Loader\DataLoaderFactory;
 use OpenDxp\Bundle\DataImporterBundle\Event\PostPreparationEvent;
 use OpenDxp\Bundle\DataImporterBundle\Exception\QueueNotEmptyException;
-use OpenDxp\Bundle\DataImporterBundle\PimcoreDataImporterBundle;
+use OpenDxp\Bundle\DataImporterBundle\OpenDxpDataImporterBundle;
 use OpenDxp\Bundle\DataImporterBundle\Processing\Scheduler\Exception\InvalidScheduleException;
 use OpenDxp\Bundle\DataImporterBundle\Processing\Scheduler\SchedulerFactory;
 use OpenDxp\Bundle\DataImporterBundle\Queue\QueueService;
 use OpenDxp\Bundle\DataImporterBundle\Resolver\ResolverFactory;
 use OpenDxp\Bundle\DataImporterBundle\Settings\ConfigurationPreparationService;
-use OpenDxp\Bundle\ApplicationLoggerBundle\ApplicationLogger;
 use Psr\Log\LoggerAwareTrait;
 use Symfony\Contracts\EventDispatcher\EventDispatcherInterface;
 
 class ImportPreparationService
 {
     const SCHEDULE_TYPE_CRON = 'cron';
+
     const SCHEDULE_TYPE_JOB = 'job';
 
     use LoggerAwareTrait;
@@ -79,15 +81,6 @@ class ImportPreparationService
 
     /**
      * ImportPreparationService constructor.
-     *
-     * @param ResolverFactory $resolverFactory
-     * @param InterpreterFactory $interpreterFactory
-     * @param DataLoaderFactory $dataLoaderFactory
-     * @param QueueService $queueService
-     * @param ApplicationLogger $applicationLogger
-     * @param ConfigurationPreparationService $configurationPreparationService
-     * @param ExecutionService $executionService
-     * @param EventDispatcherInterface $eventDispatcher
      */
     public function __construct(
         ResolverFactory $resolverFactory,
@@ -130,7 +123,7 @@ class ImportPreparationService
 
             $logMessage = 'Loading source data from configured source...';
             $this->applicationLogger->info($logMessage, [
-                'component' => PimcoreDataImporterBundle::LOGGER_COMPONENT_PREFIX . $configName,
+                'component' => OpenDxpDataImporterBundle::LOGGER_COMPONENT_PREFIX . $configName,
             ]);
             $this->logger->info($logMessage);
             $filePath = $loader->loadData();
@@ -157,14 +150,14 @@ class ImportPreparationService
             $this->logger->warning($message);
 
             $this->applicationLogger->warning($message, [
-                'component' => PimcoreDataImporterBundle::LOGGER_COMPONENT_PREFIX . $configName,
+                'component' => OpenDxpDataImporterBundle::LOGGER_COMPONENT_PREFIX . $configName,
             ]);
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             $message = 'Error preparing Import: ';
             $this->logger->warning($message . $e);
 
             $this->applicationLogger->error($message . $e->getMessage(), [
-                'component' => PimcoreDataImporterBundle::LOGGER_COMPONENT_PREFIX . $configName,
+                'component' => OpenDxpDataImporterBundle::LOGGER_COMPONENT_PREFIX . $configName,
             ]);
         }
 

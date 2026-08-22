@@ -22,7 +22,7 @@ use Symfony\Component\DependencyInjection\Reference;
 
 class MultiAttributeConfigurationFactoryPass implements CompilerPassInterface
 {
-    const string operator_tag = 'pimcore.datahub.data_importer.operator';
+    const string operator_tag = 'opendxp.datahub.data_importer.operator';
 
     public function process(ContainerBuilder $container): void
     {

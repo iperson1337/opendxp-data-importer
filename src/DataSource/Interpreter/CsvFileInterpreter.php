@@ -1,16 +1,16 @@
 <?php
 
 /**
- * Pimcore
+ * OpenDXP
  *
- * This source file is available under two different licenses:
- * - GNU General Public License version 3 (GPLv3)
- * - Pimcore Commercial License (PCL)
+ * This source file is licensed under the GNU General Public License version 3 (GPLv3).
+ *
  * Full copyright and license information is available in
  * LICENSE.md which is distributed with this source code.
  *
- *  @copyright  Copyright (c) Pimcore GmbH (http://www.pimcore.org)
- *  @license    http://www.pimcore.org/license     GPLv3 and PCL
+ * @copyright  Copyright (c) Pimcore GmbH (https://pimcore.com)
+ * @copyright  Modification Copyright (c) OpenDXP (https://www.opendxp.io)
+ * @license    https://www.gnu.org/licenses/gpl-3.0.html  GNU General Public License version 3 (GPLv3)
  */
 
 namespace OpenDxp\Bundle\DataImporterBundle\DataSource\Interpreter;
@@ -20,7 +20,7 @@ use Symfony\Component\Mime\MimeTypes;
 
 class CsvFileInterpreter extends AbstractInterpreter
 {
-    private const UTF8_BOM = "\xEF\xBB\xBF";
+    private const string UTF8_BOM = "\xEF\xBB\xBF";
 
     /**
      * @var bool
@@ -112,11 +112,11 @@ class CsvFileInterpreter extends AbstractInterpreter
                 if ($this->saveHeaderName) {
                     $header = $data;
                     foreach ($data as $index => $columnHeader) {
-                        $columns[$columnHeader] = trim($columnHeader);
+                        $columns[$columnHeader] = trim((string) $columnHeader);
                     }
                 } else {
                     foreach ($data as $index => $columnHeader) {
-                        $columns[$index] = trim($columnHeader) . " [$index]";
+                        $columns[$index] = trim((string) $columnHeader) . " [$index]";
                     }
                 }
             }

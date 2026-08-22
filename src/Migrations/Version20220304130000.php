@@ -56,6 +56,6 @@ class Version20220304130000 extends BundleAwareMigration
 
     protected function getBundleName(): string
     {
-        return 'PimcoreDataImporterBundle';
+        return 'OpenDxpDataImporterBundle';
     }
 }

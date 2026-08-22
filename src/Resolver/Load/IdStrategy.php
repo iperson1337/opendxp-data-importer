@@ -1,22 +1,21 @@
 <?php
 
 /**
- * Pimcore
+ * OpenDXP
  *
- * This source file is available under two different licenses:
- * - GNU General Public License version 3 (GPLv3)
- * - Pimcore Commercial License (PCL)
+ * This source file is licensed under the GNU General Public License version 3 (GPLv3).
+ *
  * Full copyright and license information is available in
  * LICENSE.md which is distributed with this source code.
  *
- *  @copyright  Copyright (c) Pimcore GmbH (http://www.pimcore.org)
- *  @license    http://www.pimcore.org/license     GPLv3 and PCL
+ * @copyright  Copyright (c) Pimcore GmbH (https://pimcore.com)
+ * @copyright  Modification Copyright (c) OpenDXP (https://www.opendxp.io)
+ * @license    https://www.gnu.org/licenses/gpl-3.0.html  GNU General Public License version 3 (GPLv3)
  */
 
 namespace OpenDxp\Bundle\DataImporterBundle\Resolver\Load;
 
 use OpenDxp\Bundle\DataImporterBundle\Exception\InvalidConfigurationException;
-use OpenDxp\Model\DataObject\Service;
 use OpenDxp\Model\Element\ElementInterface;
 
 class IdStrategy extends AbstractLoad
@@ -24,19 +23,17 @@ class IdStrategy extends AbstractLoad
     /**
      * @param string $identifier
      *
-     * @return ElementInterface|null
-     *
      * @throws InvalidConfigurationException
      */
     public function loadElementByIdentifier($identifier): ?ElementInterface
     {
         return $this->dataObjectLoader->loadById($identifier,
-                                                 $this->getClassName());
+            $this->getClassName());
     }
 
     public function loadFullIdentifierList(): array
     {
-        $sql = sprintf('SELECT `%s` FROM object_%s', Service::getVersionDependentDatabaseColumnName('o_id'), $this->dataObjectClassId);
+        $sql = sprintf('SELECT `id` FROM object_%s', $this->dataObjectClassId);
 
         return $this->db->fetchFirstColumn($sql);
     }

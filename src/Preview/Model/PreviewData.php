@@ -1,16 +1,16 @@
 <?php
 
 /**
- * Pimcore
+ * OpenDXP
  *
- * This source file is available under two different licenses:
- * - GNU General Public License version 3 (GPLv3)
- * - Pimcore Commercial License (PCL)
+ * This source file is licensed under the GNU General Public License version 3 (GPLv3).
+ *
  * Full copyright and license information is available in
  * LICENSE.md which is distributed with this source code.
  *
- *  @copyright  Copyright (c) Pimcore GmbH (http://www.pimcore.org)
- *  @license    http://www.pimcore.org/license     GPLv3 and PCL
+ * @copyright  Copyright (c) Pimcore GmbH (https://pimcore.com)
+ * @copyright  Modification Copyright (c) OpenDXP (https://www.opendxp.io)
+ * @license    https://www.gnu.org/licenses/gpl-3.0.html  GNU General Public License version 3 (GPLv3)
  */
 
 namespace OpenDxp\Bundle\DataImporterBundle\Preview\Model;
@@ -39,11 +39,6 @@ class PreviewData
 
     /**
      * PreviewData constructor.
-     *
-     * @param array $labels
-     * @param array $previewData
-     * @param int $recordNumber
-     * @param array $mappedColumns
      */
     public function __construct(array $labels, array $previewData, int $recordNumber, array $mappedColumns = [])
     {
@@ -60,7 +55,7 @@ class PreviewData
             $columnHeaders[] = [
                 'id' => (string) $index,
                 'dataIndex' => (string) $index,
-                'label' => $label
+                'label' => $label,
             ];
         }
 
@@ -76,7 +71,7 @@ class PreviewData
                 'dataIndex' => (string) $index,
                 'label' => $this->labels[$index] ?? $index,
                 'data' => $attribute,
-                'mapped' => array_key_exists((string) $index, $this->mappedColumns)
+                'mapped' => array_key_exists((string) $index, $this->mappedColumns),
             ];
         }
 

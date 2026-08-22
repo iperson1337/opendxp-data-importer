@@ -21,7 +21,7 @@ For starting imports see also [Execution Configuration](./03_Configuration/07_Ex
 Steps to be executed while preparation are: 
 - Loading data from data source.
 - Interpret source data, spilt into data rows and create queue items.
-- If activated: check if existing elements in Pimcore need to be cleaned up and create corresponding cleanup queue items. 
+- If activated: check if existing elements in OpenDXP need to be cleaned up and create corresponding cleanup queue items. 
 
 Preparation is executed only when the queue for corresponding import configuration is empty to prevent race conditions 
 during import.  

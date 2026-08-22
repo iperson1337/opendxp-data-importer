@@ -1,30 +1,32 @@
 <?php
 
 /**
- * Pimcore
+ * OpenDXP
  *
- * This source file is available under two different licenses:
- * - GNU General Public License version 3 (GPLv3)
- * - Pimcore Commercial License (PCL)
+ * This source file is licensed under the GNU General Public License version 3 (GPLv3).
+ *
  * Full copyright and license information is available in
  * LICENSE.md which is distributed with this source code.
  *
- *  @copyright  Copyright (c) Pimcore GmbH (http://www.pimcore.org)
- *  @license    http://www.pimcore.org/license     GPLv3 and PCL
+ * @copyright  Copyright (c) Pimcore GmbH (https://pimcore.com)
+ * @copyright  Modification Copyright (c) OpenDXP (https://www.opendxp.io)
+ * @license    https://www.gnu.org/licenses/gpl-3.0.html  GNU General Public License version 3 (GPLv3)
  */
 
 namespace OpenDxp\Bundle\DataImporterBundle\Command;
 
-use Doctrine\DBAL\Driver\Exception;
-use OpenDxp\Bundle\DataImporterBundle\Exception\InvalidConfigurationException;
+use OpenDxp;
 use OpenDxp\Bundle\DataImporterBundle\Processing\ImportProcessingService;
 use OpenDxp\Bundle\DataImporterBundle\Queue\QueueService;
 use OpenDxp\Console\AbstractCommand;
+use OpenDxp\Console\Style\OpenDxpStyle;
+use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Helper\ProgressBar;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Lock\LockFactory;
 use Symfony\Component\Lock\LockInterface;
+use Throwable;
 
 class SequentialProcessQueueCommand extends AbstractCommand
 {
@@ -50,7 +52,7 @@ class SequentialProcessQueueCommand extends AbstractCommand
         $this->queueService = $queueService;
     }
 
-    public function configure()
+    public function configure(): void
     {
         $this
             ->setName('datahub:data-importer:process-queue-sequential')
@@ -58,22 +60,15 @@ class SequentialProcessQueueCommand extends AbstractCommand
         ;
     }
 
-    /**
-     * @param InputInterface $input
-     * @param OutputInterface $output
-     *
-     * @return int|void
-     *
-     * @throws Exception
-     * @throws \Doctrine\DBAL\Exception
-     * @throws InvalidConfigurationException
-     */
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
         if (!$this->lock()) {
             $this->writeError('The command is already running.');
-            exit(1);
+
+            return Command::FAILURE;
         }
+
+        $io = new OpenDxpStyle($input, $output);
 
         try {
             $itemIds = $this->queueService->getAllQueueEntryIds(ImportProcessingService::EXECUTION_TYPE_SEQUENTIAL);
@@ -90,7 +85,7 @@ class SequentialProcessQueueCommand extends AbstractCommand
 
                 // call the garbage collector to avoid too many connections & memory issue
                 if (($i + 1) % 200 === 0) {
-                    \OpenDxp::collectGarbage();
+                    OpenDxp::collectGarbage();
                 }
             }
 
@@ -100,21 +95,21 @@ class SequentialProcessQueueCommand extends AbstractCommand
 
             $output->writeln("\n\nProcessed {$itemCount} items.");
 
-            return 0;
-        } catch (\Throwable $t) {
+            return Command::SUCCESS;
+        } catch (Throwable $e) {
             $this->release();
-            throw $t;
+            $io->error($e->getMessage());
         }
+
+        return Command::FAILURE;
     }
 
     /**
      * Locks the command.
-     *
-     * @return bool
      */
     private function lock(): bool
     {
-        $this->lock = \OpenDxp::getContainer()->get(LockFactory::class)->createLock($this->getName(), 86400);
+        $this->lock = OpenDxp::getContainer()->get(LockFactory::class)->createLock($this->getName(), 86400);
 
         if (!$this->lock->acquire(false)) {
             $this->lock = null;

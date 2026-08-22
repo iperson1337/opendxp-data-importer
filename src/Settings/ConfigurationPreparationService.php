@@ -1,33 +1,33 @@
 <?php
 
 /**
- * Pimcore
+ * OpenDXP
  *
- * This source file is available under two different licenses:
- * - GNU General Public License version 3 (GPLv3)
- * - Pimcore Commercial License (PCL)
+ * This source file is licensed under the GNU General Public License version 3 (GPLv3).
+ *
  * Full copyright and license information is available in
  * LICENSE.md which is distributed with this source code.
  *
- *  @copyright  Copyright (c) Pimcore GmbH (http://www.pimcore.org)
- *  @license    http://www.pimcore.org/license     GPLv3 and PCL
+ * @copyright  Copyright (c) Pimcore GmbH (https://pimcore.com)
+ * @copyright  Modification Copyright (c) OpenDXP (https://www.opendxp.io)
+ * @license    https://www.gnu.org/licenses/gpl-3.0.html  GNU General Public License version 3 (GPLv3)
  */
 
 namespace OpenDxp\Bundle\DataImporterBundle\Settings;
 
+use Exception;
 use OpenDxp\Bundle\DataHubBundle\Configuration\Dao;
 use Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException;
 
 class ConfigurationPreparationService
 {
     /**
-     * @param string $configName
      * @param string|array|null $currentConfig
      * @param bool $ignorePermissions
      *
      * @return array
      *
-     * @throws \Exception
+     * @throws Exception
      */
     public function prepareConfiguration(string $configName, $currentConfig = null, $ignorePermissions = false)
     {
@@ -39,7 +39,7 @@ class ConfigurationPreparationService
         } else {
             $configuration = Dao::getByName($configName);
             if (!$configuration) {
-                throw new \Exception('Configuration ' . $configName . ' does not exist.');
+                throw new Exception('Configuration ' . $configName . ' does not exist.');
             }
 
             $config = $configuration->getConfiguration();
@@ -50,7 +50,7 @@ class ConfigurationPreparationService
 
                 $config['userPermissions'] = [
                     'update' => $configuration->isAllowed('update'),
-                    'delete' => $configuration->isAllowed('delete')
+                    'delete' => $configuration->isAllowed('delete'),
                 ];
             }
         }
@@ -63,11 +63,11 @@ class ConfigurationPreparationService
                 'loadingStrategy' => [],
                 'createLocationStrategy' => [],
                 'locationUpdateStrategy' => [],
-                'publishingStrategy' => []
+                'publishingStrategy' => [],
             ],
             'processingConfig' => [],
             'mappingConfig' => [],
-            'executionConfig' => []
+            'executionConfig' => [],
         ], $config);
 
         return $config;

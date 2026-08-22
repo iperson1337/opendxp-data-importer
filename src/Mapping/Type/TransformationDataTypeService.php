@@ -1,54 +1,81 @@
 <?php
 
 /**
- * Pimcore
+ * OpenDXP
  *
- * This source file is available under two different licenses:
- * - GNU General Public License version 3 (GPLv3)
- * - Pimcore Commercial License (PCL)
+ * This source file is licensed under the GNU General Public License version 3 (GPLv3).
+ *
  * Full copyright and license information is available in
  * LICENSE.md which is distributed with this source code.
  *
- *  @copyright  Copyright (c) Pimcore GmbH (http://www.pimcore.org)
- *  @license    http://www.pimcore.org/license     GPLv3 and PCL
+ * @copyright  Copyright (c) Pimcore GmbH (https://pimcore.com)
+ * @copyright  Modification Copyright (c) OpenDXP (https://www.opendxp.io)
+ * @license    https://www.gnu.org/licenses/gpl-3.0.html  GNU General Public License version 3 (GPLv3)
  */
 
 namespace OpenDxp\Bundle\DataImporterBundle\Mapping\Type;
 
+use Exception;
 use OpenDxp\Model\DataObject\ClassDefinition;
 use OpenDxp\Model\DataObject\Objectbrick\Definition;
 
 class TransformationDataTypeService
 {
-    const string DEFAULT_TYPE = 'default';
-    const string DEFAULT_ARRAY = 'array';
-    const string NUMERIC = 'numeric';
-    const string BOOLEAN = 'boolean';
-    const string QUANTITY_VALUE = 'quantityValue';
-    const string QUANTITY_VALUE_ARRAY = 'quantityValueArray';
-    const string INPUT_QUANTITY_VALUE = 'inputQuantityValue';
-    const string INPUT_QUANTITY_VALUE_ARRAY = 'inputQuantityValueArray';
-    const string DATE = 'date';
-    const string DATE_ARRAY = 'dateArray';
-    const string TIME = 'time';
-    const string TIME_ARRAY = 'timeArray';
-    const string ASSET = 'asset';
-    const string ASSET_ARRAY = 'assetArray';
-    const string GALLERY = 'gallery';
-    const string IMAGE_ADVANCED = 'imageAdvanced';
-    const string DATA_OBJECT = 'dataObject';
-    const string DATA_OBJECT_ARRAY = 'dataObjectArray';
-    const string ADVANCED_DATA_OBJECT_ARRAY = 'advancedDataObjectArray';
-    const string ADVANCED_ASSET_ARRAY = 'advancedAssetArray';
-    const string GEOPOINT_VALUE = 'geoPoint';
-    const string GEOBOUNDS_VALUE = 'geoBounds';
-    const string GEOPOLYGON_VALUE = 'geoPolygon';
-    const string GEOPOLYLINE_VALUE = 'geoPolyline';
-    const string RGBA_COLOR = 'rgbaColor';
-    const string COUNTRY_ARRAY = 'countryArray';
-    const string NUMERIC_RANGE = 'numericRange';
+    const DEFAULT_TYPE = 'default';
 
-    protected array $transformationDataTypesMapping = [
+    const DEFAULT_ARRAY = 'array';
+
+    const NUMERIC = 'numeric';
+
+    const BOOLEAN = 'boolean';
+
+    const QUANTITY_VALUE = 'quantityValue';
+
+    const QUANTITY_VALUE_ARRAY = 'quantityValueArray';
+
+    const INPUT_QUANTITY_VALUE = 'inputQuantityValue';
+
+    const INPUT_QUANTITY_VALUE_ARRAY = 'inputQuantityValueArray';
+
+    const DATE = 'date';
+
+    const DATE_ARRAY = 'dateArray';
+
+    const TIME = 'time';
+
+    const TIME_ARRAY = 'timeArray';
+
+    const ASSET = 'asset';
+
+    const ASSET_ARRAY = 'assetArray';
+
+    const GALLERY = 'gallery';
+
+    const IMAGE_ADVANCED = 'imageAdvanced';
+
+    const DATA_OBJECT = 'dataObject';
+
+    const DATA_OBJECT_ARRAY = 'dataObjectArray';
+
+    const ADVANCED_DATA_OBJECT_ARRAY = 'advancedDataObjectArray';
+
+    const ADVANCED_ASSET_ARRAY = 'advancedAssetArray';
+
+    const GEOPOINT_VALUE = 'geoPoint';
+
+    const GEOBOUNDS_VALUE = 'geoBounds';
+
+    const GEOPOLYGON_VALUE = 'geoPolygon';
+
+    const GEOPOLYLINE_VALUE = 'geoPolyline';
+
+    const RGBA_COLOR = 'rgbaColor';
+
+    const COUNTRY_ARRAY = 'countryArray';
+
+    const NUMERIC_RANGE = 'numericRange';
+
+    protected $transformationDataTypesMapping = [
         self::DEFAULT_TYPE => [
             'input',
             'textarea',
@@ -61,97 +88,97 @@ class TransformationDataTypeService
             'firstname',
             'lastname',
             'email',
-            'gender'
+            'gender',
         ],
         self::NUMERIC => [
             'numeric',
-            'slider'
+            'slider',
         ],
         self::DEFAULT_ARRAY => [
             'multiselect',
             'countrymultiselect',
-            'languages'
+            'languages',
         ],
         self::QUANTITY_VALUE => [
-            'quantityValue'
+            'quantityValue',
         ],
         self::INPUT_QUANTITY_VALUE => [
-            'inputQuantityValue'
+            'inputQuantityValue',
         ],
         self::BOOLEAN => [
             'booleanSelect',
             'checkbox',
             'numeric',
-            'input'
+            'input',
         ],
         self::DATE => [
             'date',
-            'datetime'
+            'datetime',
         ],
         self::TIME => [
             'time',
         ],
         self::ASSET => [
             'image',
-            'manyToOneRelation'
+            'manyToOneRelation',
         ],
         self::ASSET_ARRAY => [
-            'manyToManyRelation'
+            'manyToManyRelation',
         ],
         self::ADVANCED_ASSET_ARRAY => [
             'manyToManyRelation',
-            'advancedManyToManyRelation'
+            'advancedManyToManyRelation',
         ],
         self::GALLERY => [
-            'imageGallery'
+            'imageGallery',
         ],
         self::IMAGE_ADVANCED => [
-            'hotspotimage'
+            'hotspotimage',
         ],
         self::DATA_OBJECT => [
-            'manyToOneRelation'
+            'manyToOneRelation',
         ],
         self::DATA_OBJECT_ARRAY => [
             'manyToManyRelation',
-            'manyToManyObjectRelation'
+            'manyToManyObjectRelation',
         ],
         self::ADVANCED_DATA_OBJECT_ARRAY => [
             'manyToManyRelation',
             'advancedManyToManyRelation',
             'manyToManyObjectRelation',
-            'advancedManyToManyObjectRelation'
+            'advancedManyToManyObjectRelation',
         ],
         self::GEOPOINT_VALUE => [
-            'geopoint'
+            'geopoint',
         ],
         self::GEOBOUNDS_VALUE => [
-            'geobounds'
+            'geobounds',
         ],
         self::GEOPOLYGON_VALUE => [
-            'geopolygon'
+            'geopolygon',
         ],
         self::GEOPOLYLINE_VALUE => [
-            'geopolyline'
+            'geopolyline',
         ],
         self::RGBA_COLOR => [
-            'rgbaColor'
+            'rgbaColor',
         ],
         self::COUNTRY_ARRAY => [
-            'countrymultiselect'
+            'countrymultiselect',
         ],
         self::NUMERIC_RANGE => [
-            'numericRange'
-        ]
+            'numericRange',
+        ],
     ];
 
-    public function appendTypeMapping(string $pimcoreDataType, string $transformationTargetType): void
+    public function appendTypeMapping(string $opendxpDataType, string $transformationTargetType): void
     {
-        $this->transformationDataTypesMapping[$transformationTargetType][] = $pimcoreDataType;
+        $this->transformationDataTypesMapping[$transformationTargetType][] = $opendxpDataType;
     }
 
-    protected function addTypesToAttributesArray(ClassDefinition\Data $fieldDefinition, string $targetType, array &$attributes, bool $localized = false, string $keyPrefix = null): void
+    protected function addTypesToAttributesArray(ClassDefinition\Data $fieldDefinition, string $targetType, array &$attributes, bool $localized = false, ?string $keyPrefix = null)
     {
-        if (in_array($fieldDefinition->getFieldtype(), ($this->transformationDataTypesMapping[$targetType] ?? []), true)) {
+        if (in_array($fieldDefinition->getFieldtype(), ($this->transformationDataTypesMapping[$targetType] ?? []))) {
             $key = $fieldDefinition->getName();
             if ($keyPrefix) {
                 $key = $keyPrefix . '.' . $key;
@@ -159,7 +186,7 @@ class TransformationDataTypeService
             $attributes[$key] = [
                 'key' => $key,
                 'title' => $fieldDefinition->getTitle() . ' [' . $key . ']',
-                'localized' => $localized
+                'localized' => $localized,
             ];
         }
 
@@ -182,17 +209,11 @@ class TransformationDataTypeService
     }
 
     /**
-     * @param string $classId
      * @param array|string $transformationTargetType
-     * @param bool $includeSystemRead
-     * @param bool $includeSystemWrite
-     * @param bool $includeAdvancedRelations
      *
-     * @return array
-     *
-     * @throws \Exception
+     * @throws Exception
      */
-    public function getPimcoreDataTypes(string $classId, array|string $transformationTargetType, bool $includeSystemRead, bool $includeSystemWrite, bool $includeAdvancedRelations): array
+    public function getOpenDxpDataTypes(string $classId, $transformationTargetType, bool $includeSystemRead, bool $includeSystemWrite, bool $includeAdvancedRelations): array
     {
         $class = ClassDefinition::getById($classId);
 
@@ -204,12 +225,10 @@ class TransformationDataTypeService
 
         //replace for advanced relations
         if ($includeAdvancedRelations) {
-            $transformationTargetType = array_map(static function ($item) {
-                return match ($item) {
-                    self::ASSET_ARRAY => self::ADVANCED_ASSET_ARRAY,
-                    self::DATA_OBJECT_ARRAY => self::ADVANCED_DATA_OBJECT_ARRAY,
-                    default => $item,
-                };
+            $transformationTargetType = array_map(fn ($item) => match ($item) {
+                self::ASSET_ARRAY => self::ADVANCED_ASSET_ARRAY,
+                self::DATA_OBJECT_ARRAY => self::ADVANCED_DATA_OBJECT_ARRAY,
+                default => $item,
             }, $transformationTargetType);
         }
 
@@ -219,29 +238,29 @@ class TransformationDataTypeService
             }
         }
 
-        if (in_array(self::DEFAULT_TYPE, $transformationTargetType, true)) {
+        if (in_array(self::DEFAULT_TYPE, $transformationTargetType)) {
             if ($includeSystemRead) {
                 $attributes['id'] = [
                     'key' => 'id',
                     'title' => 'SYSTEM ID',
-                    'localized' => false
+                    'localized' => false,
                 ];
                 $attributes['key'] = [
                     'key' => 'key',
                     'title' => 'SYSTEM Key',
-                    'localized' => false
+                    'localized' => false,
                 ];
                 $attributes['path'] = [
                     'key' => 'path',
                     'title' => 'SYSTEM Fullpath',
-                    'localized' => false
+                    'localized' => false,
                 ];
             }
             if ($includeSystemWrite) {
                 $attributes['key'] = [
                     'key' => 'key',
                     'title' => 'SYSTEM Key',
-                    'localized' => false
+                    'localized' => false,
                 ];
             }
         }
@@ -250,7 +269,7 @@ class TransformationDataTypeService
             $attributes['type'] = [
                 'key' => 'type',
                 'title' => 'SYSTEM Object Type ("variant"|"object")',
-                'localized' => false
+                'localized' => false,
             ];
         }
 
@@ -258,11 +277,7 @@ class TransformationDataTypeService
     }
 
     /**
-     * @param string $classId
-     *
-     * @return array
-     *
-     * @throws \Exception
+     * @throws Exception
      */
     public function getClassificationStoreAttributes(string $classId): array
     {
@@ -274,7 +289,7 @@ class TransformationDataTypeService
                 $attributes[$definition->getName()] = [
                     'key' => $definition->getName(),
                     'title' => $definition->getTitle() . ' [' . $definition->getName() . ']',
-                    'localized' => $definition->isLocalized()
+                    'localized' => $definition->isLocalized(),
                 ];
             }
         }
@@ -283,11 +298,9 @@ class TransformationDataTypeService
     }
 
     /**
-     * @param string $transformationTargetType
-     *
      * @return array|string[]
      */
-    public function getPimcoreTypesByTransformationTargetType(string $transformationTargetType): array
+    public function getOpenDxpTypesByTransformationTargetType(string $transformationTargetType): array
     {
         return $this->transformationDataTypesMapping[$transformationTargetType] ?? [];
     }

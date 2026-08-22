@@ -32,7 +32,7 @@ wisely.
 ### Cleanup   
 > This option requires an id field in the import data.
 
-The importer can cleanup in Pimcore existing data objects if they are not part of the current import data
+The importer can cleanup in OpenDXP existing data objects if they are not part of the current import data
 anymore. There are two cleanup strategies available: 
 - Unpublish: Unpublish data object to be cleaned up. 
 - Delete: Delete data object to be cleaned up.

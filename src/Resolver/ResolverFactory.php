@@ -1,16 +1,16 @@
 <?php
 
 /**
- * Pimcore
+ * OpenDXP
  *
- * This source file is available under two different licenses:
- * - GNU General Public License version 3 (GPLv3)
- * - Pimcore Commercial License (PCL)
+ * This source file is licensed under the GNU General Public License version 3 (GPLv3).
+ *
  * Full copyright and license information is available in
  * LICENSE.md which is distributed with this source code.
  *
- *  @copyright  Copyright (c) Pimcore GmbH (http://www.pimcore.org)
- *  @license    http://www.pimcore.org/license     GPLv3 and PCL
+ * @copyright  Copyright (c) Pimcore GmbH (https://pimcore.com)
+ * @copyright  Modification Copyright (c) OpenDXP (https://www.opendxp.io)
+ * @license    https://www.gnu.org/licenses/gpl-3.0.html  GNU General Public License version 3 (GPLv3)
  */
 
 namespace OpenDxp\Bundle\DataImporterBundle\Resolver;
@@ -26,32 +26,31 @@ class ResolverFactory
     /**
      * @var Resolver
      */
-    protected Resolver $resolverBlueprint;
+    protected $resolverBlueprint;
 
     /**
      * @var LoadStrategyInterface[]
      */
-    protected array $loadingStrategyBlueprints;
+    protected $loadingStrategyBlueprints;
 
     /**
      * @var LocationStrategyInterface[]
      */
-    protected array $locationStrategyBlueprints;
+    protected $locationStrategyBlueprints;
 
     /**
      * @var PublishStrategyInterface[]
      */
-    protected array $publishingStrategyBlueprints;
+    protected $publishingStrategyBlueprints;
 
     /**
      * @var FactoryInterface[]
      */
-    protected array $factoryBlueprints;
+    protected $factoryBlueprints;
 
     /**
      * ResolverFactory constructor.
      *
-     * @param Resolver $resolverBlueprint
      * @param LoadStrategyInterface[] $loadingStrategyBlueprints
      * @param LocationStrategyInterface[] $locationStrategyBlueprints
      * @param PublishStrategyInterface[] $publishingStrategyBlueprints
@@ -67,10 +66,7 @@ class ResolverFactory
     }
 
     /**
-     * @param array $config
      * @param string $classId
-     *
-     * @return LoadStrategyInterface
      *
      * @throws InvalidConfigurationException
      */
@@ -87,9 +83,6 @@ class ResolverFactory
         return $loadingStrategy;
     }
 
-    /**
-     * @throws InvalidConfigurationException
-     */
     protected function buildLocationStrategy(array $config): LocationStrategyInterface
     {
         if (empty($config['type']) || !array_key_exists($config['type'], $this->locationStrategyBlueprints)) {
@@ -114,10 +107,7 @@ class ResolverFactory
         return $publishStrategy;
     }
 
-    /**
-     * @throws InvalidConfigurationException
-     */
-    protected function buildElementFactory(string $type, string $subType = null): FactoryInterface
+    protected function buildElementFactory(string $type, ?string $subType = null): FactoryInterface
     {
         if (empty($type) || !array_key_exists($type, $this->factoryBlueprints)) {
             throw new InvalidConfigurationException('Unknown publishing strategy type `' . $type . '`');
@@ -129,9 +119,6 @@ class ResolverFactory
         return $factory;
     }
 
-    /**
-     * @throws InvalidConfigurationException
-     */
     public function loadResolver(array $configuration): Resolver
     {
         $resolver = clone $this->resolverBlueprint;

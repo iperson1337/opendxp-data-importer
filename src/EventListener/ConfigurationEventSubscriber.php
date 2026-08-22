@@ -1,16 +1,16 @@
 <?php
 
 /**
- * Pimcore
+ * OpenDXP
  *
- * This source file is available under two different licenses:
- * - GNU General Public License version 3 (GPLv3)
- * - Pimcore Commercial License (PCL)
+ * This source file is licensed under the GNU General Public License version 3 (GPLv3).
+ *
  * Full copyright and license information is available in
  * LICENSE.md which is distributed with this source code.
  *
- *  @copyright  Copyright (c) Pimcore GmbH (http://www.pimcore.org)
- *  @license    http://www.pimcore.org/license     GPLv3 and PCL
+ * @copyright  Copyright (c) Pimcore GmbH (https://pimcore.com)
+ * @copyright  Modification Copyright (c) OpenDXP (https://www.opendxp.io)
+ * @license    https://www.gnu.org/licenses/gpl-3.0.html  GNU General Public License version 3 (GPLv3)
  */
 
 namespace OpenDxp\Bundle\DataImporterBundle\EventListener;
@@ -43,17 +43,16 @@ class ConfigurationEventSubscriber implements EventSubscriberInterfaceAlias
      */
     protected $executionService;
 
-    protected FilesystemOperator $pimcoreDataImporterUploadStorage;
-
-    protected FilesystemOperator $pimcoreDataImporterPreviewStorage;
-
-    public function __construct(DeltaChecker $deltaChecker, QueueService $queueService, ExecutionService $executionService, FilesystemOperator $pimcoreDataImporterUploadStorage, FilesystemOperator $pimcoreDataImporterPreviewStorage)
-    {
+    public function __construct(
+        DeltaChecker $deltaChecker,
+        QueueService $queueService,
+        ExecutionService $executionService,
+        protected FilesystemOperator $opendxpDataImporterUploadStorage,
+        protected FilesystemOperator $opendxpDataImporterPreviewStorage
+    ) {
         $this->deltaChecker = $deltaChecker;
         $this->queueService = $queueService;
         $this->executionService = $executionService;
-        $this->pimcoreDataImporterUploadStorage = $pimcoreDataImporterUploadStorage;
-        $this->pimcoreDataImporterPreviewStorage = $pimcoreDataImporterPreviewStorage;
     }
 
     /**
@@ -63,13 +62,10 @@ class ConfigurationEventSubscriber implements EventSubscriberInterfaceAlias
     {
         return [
             ConfigurationEvents::CONFIGURATION_POST_DELETE => 'postDelete',
-            ConfigurationEvents::CONFIGURATION_POST_SAVE => 'postSave'
+            ConfigurationEvents::CONFIGURATION_POST_SAVE => 'postSave',
         ];
     }
 
-    /**
-     * @param GenericEvent $event
-     */
     public function postDelete(GenericEvent $event)
     {
         /** @var Configuration $config */
@@ -84,14 +80,14 @@ class ConfigurationEventSubscriber implements EventSubscriberInterfaceAlias
 
             //cleanup preview files
             try {
-                $this->pimcoreDataImporterPreviewStorage->deleteDirectory($config->getName());
+                $this->opendxpDataImporterPreviewStorage->deleteDirectory($config->getName());
             } catch (FilesystemException $e) {
                 Logger::info($e);
             }
 
             //cleanup upload files
             try {
-                $this->pimcoreDataImporterUploadStorage->deleteDirectory($config->getName());
+                $this->opendxpDataImporterUploadStorage->deleteDirectory($config->getName());
             } catch (FilesystemException $e) {
                 Logger::info($e);
             }

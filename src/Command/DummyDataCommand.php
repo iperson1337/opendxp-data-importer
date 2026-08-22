@@ -1,23 +1,27 @@
 <?php
 
 /**
- * Pimcore
+ * OpenDXP
  *
- * This source file is available under two different licenses:
- * - GNU General Public License version 3 (GPLv3)
- * - Pimcore Commercial License (PCL)
+ * This source file is licensed under the GNU General Public License version 3 (GPLv3).
+ *
  * Full copyright and license information is available in
  * LICENSE.md which is distributed with this source code.
  *
- *  @copyright  Copyright (c) Pimcore GmbH (http://www.pimcore.org)
- *  @license    http://www.pimcore.org/license     GPLv3 and PCL
+ * @copyright  Copyright (c) Pimcore GmbH (https://pimcore.com)
+ * @copyright  Modification Copyright (c) OpenDXP (https://www.opendxp.io)
+ * @license    https://www.gnu.org/licenses/gpl-3.0.html  GNU General Public License version 3 (GPLv3)
  */
 
 namespace OpenDxp\Bundle\DataImporterBundle\Command;
 
+use DOMDocument;
+use Exception;
+use OpenDxp;
 use OpenDxp\Console\AbstractCommand;
 use OpenDxp\Model\Asset;
 use OpenDxp\Model\DataObject\Car;
+use SimpleXMLElement;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
@@ -25,24 +29,19 @@ use Symfony\Component\Filesystem\Filesystem;
 
 class DummyDataCommand extends AbstractCommand
 {
-    protected function configure()
+    protected function configure(): void
     {
         $this
             ->setName('datahub:data-importer:create-dummy-data')
-            ->setDescription("Creates a dummy-data file for test imports. File is located will be created in private tmp directory of Pimcore. Don't forget to run 'composer require fzaninotto/faker' in advance.")
+            ->setDescription("Creates a dummy-data file for test imports. File is located will be created in private tmp directory of OpenDxp. Don't forget to run 'composer require fzaninotto/faker' in advance.")
             ->addOption('items', 'i', InputOption::VALUE_OPTIONAL, 'Number of data items in file', 100)
             ->addOption('targetType', 't', InputOption::VALUE_OPTIONAL, 'Target filetype, one of csv, xml, json', 'csv')
-            ->addOption('targetFilename', 'f', InputOption::VALUE_OPTIONAL, 'Target filename, File is located will be created in private tmp directory of Pimcore.', 'export.csv')
+            ->addOption('targetFilename', 'f', InputOption::VALUE_OPTIONAL, 'Target filename, File is located will be created in private tmp directory of OpenDxp.', 'export.csv')
         ;
     }
 
     /**
-     * @param InputInterface $input
-     * @param OutputInterface $output
-     *
-     * @return int
-     *
-     * @throws \Exception
+     * @throws Exception
      */
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
@@ -55,7 +54,7 @@ class DummyDataCommand extends AbstractCommand
             'International',
             '1950',
             '1960',
-            '1970'
+            '1970',
         ];
         $tags = array_flip($tags);
 
@@ -103,9 +102,9 @@ class DummyDataCommand extends AbstractCommand
                 'description_de' => $faker->realText(400, 4),
                 'start' => $startDate->format('y-m-d H:i'),
                 'end' => $faker->dateTimeBetween($startDate)->format('y-m-d H:i'),
-                'tags' => implode(',', array_rand($tags, rand(2, 4))),
+                'tags' => implode(',', array_rand($tags, random_int(2, 4))),
                 'location' => $faker->city,
-                'cars' => implode(',', array_rand($carsIdList, rand(3, 10))),
+                'cars' => implode(',', array_rand($carsIdList, random_int(3, 10))),
                 'mainimage' => 'https://via.placeholder.com/400x200/' . substr($faker->hexColor, 1) . '/000000?text=' . $faker->text(9) . 'jpg',
                 'image2' => Asset::getById(array_rand($assetIdList, 1))->getRealFullPath(),
                 'image3' => Asset::getById(array_rand($assetIdList, 1))->getRealFullPath(),
@@ -116,17 +115,17 @@ class DummyDataCommand extends AbstractCommand
                 'attributes' => [
                     [
                         'key' => '1-6',
-                        'value' => $faker->name()
+                        'value' => $faker->name(),
                     ],
                     [
                         'key' => '2-4',
-                        'value' => $faker->text(5)
-                    ]
-                ]
+                        'value' => $faker->text(5),
+                    ],
+                ],
             ];
 
             if ($i % 100 === 0) {
-                \OpenDxp::collectGarbage();
+                OpenDxp::collectGarbage();
             }
         }
 
@@ -139,19 +138,12 @@ class DummyDataCommand extends AbstractCommand
 
         $output->writeln('Writing file to ' . $filename);
 
-        switch ($format) {
-            case 'csv':
-                $this->writeCsv($filename, $data);
-                break;
-            case 'json':
-                $this->writeJson($filename, $data);
-                break;
-            case 'xml':
-                $this->writeXml($filename, $data);
-                break;
-            default:
-                throw new \Exception('Invalid format: ' . $format);
-        }
+        match ($format) {
+            'csv' => $this->writeCsv($filename, $data),
+            'json' => $this->writeJson($filename, $data),
+            'xml' => $this->writeXml($filename, $data),
+            default => throw new Exception('Invalid format: ' . $format),
+        };
 
         return 0;
     }
@@ -181,10 +173,10 @@ class DummyDataCommand extends AbstractCommand
     {
         array_shift($data);
 
-        $xml = new \SimpleXMLElement('<root/>');
+        $xml = new SimpleXMLElement('<root/>');
         $this->arrayToXml($data, $xml, 'item');
 
-        $dom = new \DOMDocument('1.0');
+        $dom = new DOMDocument('1.0');
         $dom->preserveWhiteSpace = false;
         $dom->formatOutput = true;
         $dom->loadXML($xml->asXML());
@@ -193,7 +185,7 @@ class DummyDataCommand extends AbstractCommand
 
     /**
      * @param array $data
-     * @param \SimpleXMLElement $xml_data
+     * @param SimpleXMLElement $xml_data
      * @param string $firstLevelKey
      *
      * @return void
@@ -213,7 +205,7 @@ class DummyDataCommand extends AbstractCommand
                 $subnode = $xml_data->addChild($elementName);
                 $this->arrayToXml($value, $subnode);
             } else {
-                $xml_data->addChild($elementName, htmlspecialchars($value));
+                $xml_data->addChild($elementName, htmlspecialchars((string) $value));
             }
         }
     }

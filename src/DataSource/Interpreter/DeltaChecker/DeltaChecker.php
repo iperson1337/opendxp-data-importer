@@ -1,20 +1,21 @@
 <?php
 
 /**
- * Pimcore
+ * OpenDXP
  *
- * This source file is available under two different licenses:
- * - GNU General Public License version 3 (GPLv3)
- * - Pimcore Commercial License (PCL)
+ * This source file is licensed under the GNU General Public License version 3 (GPLv3).
+ *
  * Full copyright and license information is available in
  * LICENSE.md which is distributed with this source code.
  *
- *  @copyright  Copyright (c) Pimcore GmbH (http://www.pimcore.org)
- *  @license    http://www.pimcore.org/license     GPLv3 and PCL
+ * @copyright  Copyright (c) Pimcore GmbH (https://pimcore.com)
+ * @copyright  Modification Copyright (c) OpenDXP (https://www.opendxp.io)
+ * @license    https://www.gnu.org/licenses/gpl-3.0.html  GNU General Public License version 3 (GPLv3)
  */
 
 namespace OpenDxp\Bundle\DataImporterBundle\DataSource\Interpreter\DeltaChecker;
 
+use Closure;
 use Doctrine\DBAL\Connection;
 use Doctrine\DBAL\Exception;
 use Doctrine\DBAL\Exception\TableNotFoundException;
@@ -34,13 +35,11 @@ class DeltaChecker
     }
 
     /**
-     * @param \Closure|null $callable
-     *
      * @return mixed|null
      *
      * @throws Exception
      */
-    protected function createTableIfNotExisting(\Closure $callable = null)
+    protected function createTableIfNotExisting(?Closure $callable = null)
     {
         $this->db->executeQuery(sprintf('CREATE TABLE IF NOT EXISTS %s (
             configName varchar(80) NOT NULL,
@@ -60,13 +59,11 @@ class DeltaChecker
     {
         try {
             return $this->db->fetchOne(
-                    sprintf('SELECT hash FROM %s WHERE configName = ? AND id = ?', self::CACHE_TABLE_NAME),
-                    [$configName, $id]
-                ) ?? '';
-        } catch (TableNotFoundException $exception) {
-            return $this->createTableIfNotExisting(function () use ($configName, $id) {
-                return $this->getCurrentHash($configName, $id);
-            });
+                sprintf('SELECT hash FROM %s WHERE configName = ? AND id = ?', self::CACHE_TABLE_NAME),
+                [$configName, $id]
+            ) ?? '';
+        } catch (TableNotFoundException) {
+            return $this->createTableIfNotExisting(fn () => $this->getCurrentHash($configName, $id));
         }
     }
 
@@ -77,7 +74,7 @@ class DeltaChecker
                 sprintf('INSERT INTO %s (configName, id, hash) VALUES (?, ?, ?) ON DUPLICATE KEY UPDATE hash = ?', self::CACHE_TABLE_NAME),
                 [$configName, $id, $hash, $hash]
             );
-        } catch (TableNotFoundException $exception) {
+        } catch (TableNotFoundException) {
             $this->createTableIfNotExisting(function () use ($configName, $id, $hash) {
                 $this->updateHash($configName, $id, $hash);
             });
@@ -85,11 +82,7 @@ class DeltaChecker
     }
 
     /**
-     * @param string $configName
      * @param mixed $idDataIndex
-     * @param array $data
-     *
-     * @return bool
      */
     public function hasChanged(string $configName, $idDataIndex, array $data): bool
     {
@@ -117,7 +110,7 @@ class DeltaChecker
                 sprintf('DELETE FROM %s WHERE configName = ?', self::CACHE_TABLE_NAME),
                 [$configName]
             );
-        } catch (TableNotFoundException $exception) {
+        } catch (TableNotFoundException) {
             $this->createTableIfNotExisting();
         }
     }

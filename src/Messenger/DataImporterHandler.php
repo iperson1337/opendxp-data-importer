@@ -1,16 +1,16 @@
 <?php
 
 /**
- * Pimcore
+ * OpenDXP
  *
- * This source file is available under two different licenses:
- * - GNU General Public License version 3 (GPLv3)
- * - Pimcore Commercial License (PCL)
+ * This source file is licensed under the GNU General Public License version 3 (GPLv3).
+ *
  * Full copyright and license information is available in
  * LICENSE.md which is distributed with this source code.
  *
- *  @copyright  Copyright (c) Pimcore GmbH (http://www.pimcore.org)
- *  @license    http://www.pimcore.org/license     GPLv3 and PCL
+ * @copyright  Copyright (c) Pimcore GmbH (https://pimcore.com)
+ * @copyright  Modification Copyright (c) OpenDXP (https://www.opendxp.io)
+ * @license    https://www.gnu.org/licenses/gpl-3.0.html  GNU General Public License version 3 (GPLv3)
  */
 
 namespace OpenDxp\Bundle\DataImporterBundle\Messenger;
@@ -30,11 +30,6 @@ class DataImporterHandler
     ];
 
     /**
-     * @param QueueService $queueService
-     * @param ImportProcessingService $importProcessingService
-     * @param MessageBusInterface $messageBus
-     * @param int $workerCountLifeTime
-     * @param int $workerItemCount
      * @param int $workerCountParallel
      */
     public function __construct(
@@ -50,17 +45,11 @@ class DataImporterHandler
 
     public function __invoke(DataImporterMessage $message)
     {
-        try {
-            foreach ($message->getIds() as $id) {
-                $this->importProcessingService->processQueueItem($id);
-            }
-        } finally {
-            // Always release the worker-count marker, even if a queue item throws something
-            // processQueueItem() didn't catch — otherwise dispatchMessages() stays convinced
-            // a worker is still running until the marker's lifetime (default 30 min) expires.
-            $this->removeMessage($message->getMessageId());
+        foreach ($message->getIds() as $id) {
+            $this->importProcessingService->processQueueItem($id);
         }
 
+        $this->removeMessage($message->getMessageId());
         $this->dispatchMessages($message->getExecutionType());
     }
 
@@ -74,13 +63,8 @@ class DataImporterHandler
             if (!empty($ids)) {
                 $messageId = uniqid();
 
-                // Dispatch before marking the worker as running: if the process dies right
-                // here, a dispatch that never happened leaves no orphaned marker behind — the
-                // previous order left a multi-minute window where a killed process (e.g. a
-                // container restart) could set the marker, get killed before/while sending the
-                // message, and leave dispatchMessages() blocked for the marker's full lifetime.
-                $this->messageBus->dispatch(new DataImporterMessage($executionType, $ids, $messageId));
                 $this->addMessage($messageId, $executionType);
+                $this->messageBus->dispatch(new DataImporterMessage($executionType, $ids, $messageId));
                 $dispatchedMessageCount = $this->getMessageCount($executionType);
             } else {
                 $addWorkers = false;

@@ -1,16 +1,16 @@
 <?php
 
 /**
- * Pimcore
+ * OpenDXP
  *
- * This source file is available under two different licenses:
- * - GNU General Public License version 3 (GPLv3)
- * - Pimcore Commercial License (PCL)
+ * This source file is licensed under the GNU General Public License version 3 (GPLv3).
+ *
  * Full copyright and license information is available in
  * LICENSE.md which is distributed with this source code.
  *
- *  @copyright  Copyright (c) Pimcore GmbH (http://www.pimcore.org)
- *  @license    http://www.pimcore.org/license     GPLv3 and PCL
+ * @copyright  Copyright (c) Pimcore GmbH (https://pimcore.com)
+ * @copyright  Modification Copyright (c) OpenDXP (https://www.opendxp.io)
+ * @license    https://www.gnu.org/licenses/gpl-3.0.html  GNU General Public License version 3 (GPLv3)
  */
 
 namespace OpenDxp\Bundle\DataImporterBundle\Mapping\DataTarget;
@@ -44,8 +44,6 @@ class Direct implements DataTargetInterface
     protected $writeIfTargetIsNotEmpty;
 
     /**
-     * @param array $settings
-     *
      * @throws InvalidConfigurationException
      */
     public function setSettings(array $settings): void
@@ -58,15 +56,12 @@ class Direct implements DataTargetInterface
         $this->language = $settings['language'] ?? null;
 
         //note - cannot be replaced with ?? as $settings['writeIfSourceIsEmpty'] can be false on purpose
-        $this->writeIfSourceIsEmpty = isset($settings['writeIfSourceIsEmpty']) ? $settings['writeIfSourceIsEmpty'] : true;
-        $this->writeIfTargetIsNotEmpty = isset($settings['writeIfTargetIsNotEmpty']) ? $settings['writeIfTargetIsNotEmpty'] : true;
+        $this->writeIfSourceIsEmpty = $settings['writeIfSourceIsEmpty'] ?? true;
+        $this->writeIfTargetIsNotEmpty = $settings['writeIfTargetIsNotEmpty'] ?? true;
     }
 
     /**
-     * @param ElementInterface $element
      * @param mixed $data
-     *
-     * @return void
      *
      * @throws InvalidConfigurationException
      */
@@ -152,7 +147,7 @@ class Direct implements DataTargetInterface
             $fieldName = $fieldNameParts[2];
         }
 
-        if ($this->fieldName === 'key') {
+        if ($this->fieldName === 'key' || $this->fieldName === 'type') {
             $currentDataIsEmpty = empty($currentData);
             $newDataIsEmpty = empty($newData);
         } else {
@@ -174,7 +169,6 @@ class Direct implements DataTargetInterface
 
     /**
      * @param DataObject\Concrete|DataObject\Objectbrick\Data\AbstractData $valueContainer
-     * @param string $fieldName
      *
      * @throws InvalidConfigurationException
      */

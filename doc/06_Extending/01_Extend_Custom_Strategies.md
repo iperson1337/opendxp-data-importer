@@ -25,20 +25,20 @@ is also an abstract base class, that already implements certain functionality. T
 
 #### 2) Registering implementation as symfony service
 The php implementation needs to be registered as symfony service and tagged accordingly.
-Tag `name` defines the extension point (e.g. `pimcore.datahub.data_importer.loader` for data sources) and
+Tag `name` defines the extension point (e.g. `opendxp.datahub.data_importer.loader` for data sources) and
 `type` defines the actual type of the extension. It must be unique and is also the link to values in the configuration file
 and the JavaScript implementation.
 
 ```yml 
-    Pimcore\Bundle\DataImporterBundle\DataSource\Loader\HttpLoader:
+    OpenDxp\Bundle\DataImporterBundle\DataSource\Loader\HttpLoader:
         tags:
-            - { name: "pimcore.datahub.data_importer.loader", type: "http" }
+            - { name: "opendxp.datahub.data_importer.loader", type: "http" }
 ```
 
 #### 3) JavaScript Implementation
 Create a JavaScript class which meets following requirements:
 - Located in a certain namespace depending on the extension point
-  (e.g. `pimcore.plugin.pimcoreDataImporterBundle.configuration.components.loader.*` for data sources).
-- Extend the `pimcore.plugin.pimcoreDataImporterBundle.configuration.components.abstractOptionType` class.
+  (e.g. `opendxp.plugin.opendxpDataImporterBundle.configuration.components.loader.*` for data sources).
+- Extend the `opendxp.plugin.opendxpDataImporterBundle.configuration.components.abstractOptionType` class.
 - Define a `type` attribute that matches the `type` of the service definition, e.g. `type: 'http'`
 - Implement a function `buildSettingsForm` that creates and returns a form with all necessary setting field for the exension.

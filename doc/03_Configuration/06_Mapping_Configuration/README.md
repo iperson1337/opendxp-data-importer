@@ -1,11 +1,7 @@
 # Mapping Configuration
 
 The mapping configuration defines what data fields from the import data should be imported where and how to 
-the Pimcore data object. 
-
-<div class="image-as-lightbox"></div>
-
-![Import Preview](../../img/mapping.png)
+the OpenDXP data object. 
 
 The mapping configuration consists of multiple mapping entries. Each mapping entry provides settings for:
 - **Label**: Defines a name for the mapping entry. The name is used as title of the mapping entry only and has no further 

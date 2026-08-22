@@ -1,0 +1,15 @@
+_data_hub_data_importer_data_object_admin:
+    resource: "@OpenDxpDataImporterBundle/Controller/ConfigDataObjectController.php"
+    type:     attribute
+    options:
+        expose: true
+
+_data_hub_data_importer_connections:
+    resource: "@OpenDxpDataImporterBundle/Controller/ConnectionController.php"
+    type:     attribute
+    options:
+        expose: true
+
+_data_hub_data_importer_data_object_push:
+    resource: "@OpenDxpDataImporterBundle/Controller/PushImportController.php"
+    type:     attribute

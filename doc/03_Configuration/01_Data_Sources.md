@@ -9,7 +9,7 @@ be configured.
 
 ![Data Source Asset](../img/datasource_asset.png)
 
-Loads data from an asset stored within the Pimcore instance. 
+Loads data from an asset stored within the OpenDXP instance. 
 
 ##### Configuration Options: 
 - **Path to asset** 
@@ -44,7 +44,7 @@ where data can be pushed to via a POST request.
 The data needs to be in the configured file format and provided as raw content of the POST request. The 
 `push` data source internally uses `php://input` to read the content. 
 
-The URL for the endpoint is: `http(s)://<YOUR_DOMAIN>>/pimcore-datahub-import/<IMPORT_CONFIGURATION_NAME>/push`
+The URL for the endpoint is: `http(s)://<YOUR_DOMAIN>>/opendxp-datahub-import/<IMPORT_CONFIGURATION_NAME>/push`
 
 ##### Configuration Options: 
 - **API Key**: API Key that needs to be set as `authorization` header for every push request. 

@@ -1,33 +1,27 @@
 <?php
 
 /**
- * Pimcore
+ * OpenDXP
  *
- * This source file is available under two different licenses:
- * - GNU General Public License version 3 (GPLv3)
- * - Pimcore Commercial License (PCL)
+ * This source file is licensed under the GNU General Public License version 3 (GPLv3).
+ *
  * Full copyright and license information is available in
  * LICENSE.md which is distributed with this source code.
  *
- *  @copyright  Copyright (c) Pimcore GmbH (http://www.pimcore.org)
- *  @license    http://www.pimcore.org/license     GPLv3 and PCL
+ * @copyright  Copyright (c) Pimcore GmbH (https://pimcore.com)
+ * @copyright  Modification Copyright (c) OpenDXP (https://www.opendxp.io)
+ * @license    https://www.gnu.org/licenses/gpl-3.0.html  GNU General Public License version 3 (GPLv3)
  */
 
 namespace OpenDxp\Bundle\DataImporterBundle\Event;
 
 class PostPreparationEvent
 {
-    protected string $configName;
-
-    protected string $executionType;
-
-    protected bool $fileInterpreted;
-
-    public function __construct(string $configName, string $executionType, bool $fileInterpreted)
-    {
-        $this->configName = $configName;
-        $this->executionType = $executionType;
-        $this->fileInterpreted = $fileInterpreted;
+    public function __construct(
+        protected string $configName,
+        protected string $executionType,
+        protected bool $fileInterpreted
+    ) {
     }
 
     public function getConfigName(): string

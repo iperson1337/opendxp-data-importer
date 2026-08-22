@@ -1,16 +1,16 @@
 <?php
 
 /**
- * Pimcore
+ * OpenDXP
  *
- * This source file is available under two different licenses:
- * - GNU General Public License version 3 (GPLv3)
- * - Pimcore Commercial License (PCL)
+ * This source file is licensed under the GNU General Public License version 3 (GPLv3).
+ *
  * Full copyright and license information is available in
  * LICENSE.md which is distributed with this source code.
  *
- *  @copyright  Copyright (c) Pimcore GmbH (http://www.pimcore.org)
- *  @license    http://www.pimcore.org/license     GPLv3 and PCL
+ * @copyright  Copyright (c) Pimcore GmbH (https://pimcore.com)
+ * @copyright  Modification Copyright (c) OpenDXP (https://www.opendxp.io)
+ * @license    https://www.gnu.org/licenses/gpl-3.0.html  GNU General Public License version 3 (GPLv3)
  */
 
 namespace OpenDxp\Bundle\DataImporterBundle\Resolver\Location;
@@ -27,7 +27,9 @@ use OpenDxp\Model\Element\ElementInterface;
 class FindParentStrategy implements LocationStrategyInterface
 {
     const FIND_BY_ID = 'id';
+
     const FIND_BY_PATH = 'path';
+
     const FIND_BY_ATTRIBUTE = 'attribute';
 
     /**
@@ -110,23 +112,26 @@ class FindParentStrategy implements LocationStrategyInterface
             switch ($this->findStrategy) {
                 case self::FIND_BY_ID:
                     $newParent = $this->dataObjectLoader->loadById($identifier);
+
                     break;
                 case self::FIND_BY_PATH:
                     $newParent = $this->dataObjectLoader->loadByPath($identifier);
+
                     break;
                 case self::FIND_BY_ATTRIBUTE:
                     $class = ClassDefinition::getById($this->attributeDataObjectClassId);
                     if (empty($class)) {
                         throw new InvalidConfigurationException("Class `{$this->attributeDataObjectClassId}` not found.");
                     }
-                    $className = '\\OpenDxp\\Model\\DataObject\\' . ucfirst($class->getName());
+                    $className = '\\OpenDxp\\Model\\DataObject\\' . ucfirst((string) $class->getName());
                     $newParent = $this->dataObjectLoader->loadByAttribute($className,
-                                                                        $this->attributeName,
-                                                                        $identifier,
-                                                                        $this->attributeLanguage,
-                                                                        true,
-                                                                        1
+                        $this->attributeName,
+                        $identifier,
+                        $this->attributeLanguage,
+                        true,
+                        1
                     );
+
                     break;
             }
         }

@@ -24,7 +24,7 @@ class Version20210305134111 extends BundleAwareMigration
 {
     protected function getBundleName(): string
     {
-        return 'PimcoreDataImporterBundle';
+        return 'OpenDxpDataImporterBundle';
     }
 
     protected function checkBundleInstalled(): bool
@@ -35,7 +35,7 @@ class Version20210305134111 extends BundleAwareMigration
 
     public function up(Schema $schema): void
     {
-        SettingsStore::set('BUNDLE_INSTALLED__OpenDxp\\Bundle\\DataImporterBundle\\PimcoreDataImporterBundle', true, 'bool', 'pimcore');
+        SettingsStore::set('BUNDLE_INSTALLED__OpenDxp\\Bundle\\DataImporterBundle\\OpenDxpDataImporterBundle', true, 'bool', 'pimcore');
         $this->addSql(sprintf("INSERT IGNORE INTO users_permission_definitions (`key`, `category`) VALUES('%s', '%s');", Installer::DATAHUB_ADAPTER_PERMISSION, \OpenDxp\Bundle\DataHubBundle\Installer::DATAHUB_PERMISSION_CATEGORY));
     }
 

@@ -1,16 +1,16 @@
 <?php
 
 /**
- * Pimcore
+ * OpenDXP
  *
- * This source file is available under two different licenses:
- * - GNU General Public License version 3 (GPLv3)
- * - Pimcore Commercial License (PCL)
+ * This source file is licensed under the GNU General Public License version 3 (GPLv3).
+ *
  * Full copyright and license information is available in
  * LICENSE.md which is distributed with this source code.
  *
- *  @copyright  Copyright (c) Pimcore GmbH (http://www.pimcore.org)
- *  @license    http://www.pimcore.org/license     GPLv3 and PCL
+ * @copyright  Copyright (c) Pimcore GmbH (https://pimcore.com)
+ * @copyright  Modification Copyright (c) OpenDXP (https://www.opendxp.io)
+ * @license    https://www.gnu.org/licenses/gpl-3.0.html  GNU General Public License version 3 (GPLv3)
  */
 
 namespace OpenDxp\Bundle\DataImporterBundle\Mapping\Operator\Factory;
@@ -18,34 +18,31 @@ namespace OpenDxp\Bundle\DataImporterBundle\Mapping\Operator\Factory;
 use OpenDxp\Bundle\DataImporterBundle\Exception\InvalidConfigurationException;
 use OpenDxp\Bundle\DataImporterBundle\Mapping\Type\TransformationDataTypeService;
 use OpenDxp\Model\DataObject\QuantityValue\Unit;
+use Override;
 
 class InputQuantityValue extends QuantityValue
 {
     /**
      * @param mixed $inputData
-     * @param bool $dryRun
      *
      * @return \OpenDxp\Model\DataObject\Data\InputQuantityValue
      */
+    #[Override]
     public function process($inputData, bool $dryRun = false)
     {
         $unit = isset($inputData[1]) ? Unit::getByAbbreviation($inputData[1]) : null;
 
         return new \OpenDxp\Model\DataObject\Data\InputQuantityValue(
             $inputData[0] ?? null,
-                $unit
+            $unit
         );
     }
 
     /**
-     * @param string $inputType
-     * @param int|null $index
-     *
-     * @return string
-     *
      * @throws InvalidConfigurationException
      */
-    public function evaluateReturnType(string $inputType, int $index = null): string
+    #[Override]
+    public function evaluateReturnType(string $inputType, ?int $index = null): string
     {
         if ($inputType !== TransformationDataTypeService::DEFAULT_ARRAY) {
             throw new InvalidConfigurationException(
@@ -64,6 +61,7 @@ class InputQuantityValue extends QuantityValue
      *
      * @return string
      */
+    #[Override]
     public function generateResultPreview($inputData)
     {
         if ($inputData instanceof \OpenDxp\Model\DataObject\Data\InputQuantityValue) {

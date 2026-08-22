@@ -1,20 +1,21 @@
 <?php
 
 /**
- * Pimcore
+ * OpenDXP
  *
- * This source file is available under two different licenses:
- * - GNU General Public License version 3 (GPLv3)
- * - Pimcore Commercial License (PCL)
+ * This source file is licensed under the GNU General Public License version 3 (GPLv3).
+ *
  * Full copyright and license information is available in
  * LICENSE.md which is distributed with this source code.
  *
- *  @copyright  Copyright (c) Pimcore GmbH (http://www.pimcore.org)
- *  @license    http://www.pimcore.org/license     GPLv3 and PCL
+ * @copyright  Copyright (c) Pimcore GmbH (https://pimcore.com)
+ * @copyright  Modification Copyright (c) OpenDXP (https://www.opendxp.io)
+ * @license    https://www.gnu.org/licenses/gpl-3.0.html  GNU General Public License version 3 (GPLv3)
  */
 
 namespace OpenDxp\Bundle\DataImporterBundle\Controller;
 
+use Exception;
 use OpenDxp\Bundle\DataImporterBundle\DataSource\Loader\DataLoaderFactory;
 use OpenDxp\Bundle\DataImporterBundle\DataSource\Loader\PushLoader;
 use OpenDxp\Bundle\DataImporterBundle\Processing\ImportPreparationService;
@@ -29,36 +30,27 @@ class PushImportController
 {
     protected function validateAuthorization(Request $request, PushLoader $loader)
     {
-        if ($request->headers->has('authorization') === false) {
+        if (!$request->headers->has('authorization')) {
             throw new AccessDeniedHttpException('Missing authorization');
         }
 
         $header = $request->headers->get('authorization');
 
-        $token = trim((string) preg_replace('/^(?:\s+)?Bearer\s/', '', $header));
+        $token = trim((string) preg_replace('/^(?:\s+)?Bearer\s/', '', (string) $header));
 
         if (trim($token) !== trim($loader->getApiKey())) {
             throw new AccessDeniedHttpException('Invalid token');
         }
     }
 
-    #[Route('/pimcore-datahub-import/{config}/push', name: 'data_hub_data_importer_push', methods: ['POST'], requirements: ['config' => '[\w-]+'])]
-    /**
-    *
-    * @param Request $request
-    * @param ConfigurationPreparationService $configurationLoaderService
-    * @param DataLoaderFactory $dataLoaderFactory
-    * @param ImportPreparationService $importPreparationService
-    *
-    * @return JsonResponse
-    */
+    #[Route('/opendxp-datahub-import/{config}/push', requirements: ['config' => '[\w-]+'], methods: ['POST'])]
     public function pushAction(
         string $config,
         Request $request,
         ConfigurationPreparationService $configurationLoaderService,
         DataLoaderFactory $dataLoaderFactory,
         ImportPreparationService $importPreparationService
-    ) {
+    ): JsonResponse {
         try {
             $configuration = $configurationLoaderService->prepareConfiguration($config, null, true);
             $loader = $dataLoaderFactory->loadDataLoader($configuration['loaderConfig']);
@@ -72,10 +64,10 @@ class PushImportController
 
             if ($success) {
                 return new JsonResponse(['success' => $success]);
-            } else {
-                return new JsonResponse(['success' => false, 'message' => 'Import not prepared, see application log for details.'], 405);
             }
-        } catch (\Exception $e) {
+
+            return new JsonResponse(['success' => false, 'message' => 'Import not prepared, see application log for details.'], 405);
+        } catch (Exception $e) {
             Logger::error($e);
 
             return new JsonResponse(['success' => false, 'error' => $e->getMessage()], 500);

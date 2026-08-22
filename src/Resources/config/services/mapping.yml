@@ -16,130 +16,130 @@ services:
     # -------------------
     OpenDxp\Bundle\DataImporterBundle\Mapping\Operator\Simple\Trim:
         tags:
-            - { name: "pimcore.datahub.data_importer.operator", type: "trim" }
+            - { name: "opendxp.datahub.data_importer.operator", type: "trim" }
 
     OpenDxp\Bundle\DataImporterBundle\Mapping\Operator\Simple\StringReplace:
         tags:
-            - { name: "pimcore.datahub.data_importer.operator", type: "stringReplace" }
+            - { name: "opendxp.datahub.data_importer.operator", type: "stringReplace" }
 
     OpenDxp\Bundle\DataImporterBundle\Mapping\Operator\Simple\Explode:
         tags:
-            - { name: "pimcore.datahub.data_importer.operator", type: "explode" }
+            - { name: "opendxp.datahub.data_importer.operator", type: "explode" }
 
     OpenDxp\Bundle\DataImporterBundle\Mapping\Operator\Simple\StaticText:
         tags:
-            - { name: "pimcore.datahub.data_importer.operator", type: "staticText" }
+            - { name: "opendxp.datahub.data_importer.operator", type: "staticText" }
 
     OpenDxp\Bundle\DataImporterBundle\Mapping\Operator\Simple\ConditionalConversion:
         tags:
-            - { name: "pimcore.datahub.data_importer.operator", type: "conditionalConversion" }
+            - { name: "opendxp.datahub.data_importer.operator", type: "conditionalConversion" }
 
     OpenDxp\Bundle\DataImporterBundle\Mapping\Operator\Simple\ReduceArrayKeyValuePairs:
         tags:
-            - { name: "pimcore.datahub.data_importer.operator", type: "reduceArrayKeyValuePairs" }
+            - { name: "opendxp.datahub.data_importer.operator", type: "reduceArrayKeyValuePairs" }
 
     OpenDxp\Bundle\DataImporterBundle\Mapping\Operator\Simple\FlattenArray:
         tags:
-            - { name: "pimcore.datahub.data_importer.operator", type: "flattenArray" }
+            - { name: "opendxp.datahub.data_importer.operator", type: "flattenArray" }
 
     OpenDxp\Bundle\DataImporterBundle\Mapping\Operator\Simple\Combine:
         tags:
-            - { name: "pimcore.datahub.data_importer.operator", type: "combine" }
-
-    OpenDxp\Bundle\DataImporterBundle\Mapping\Operator\Simple\NumericRangeCombine:
-        tags:
-            - { name: "pimcore.datahub.data_importer.operator", type: "numericRange" }
+            - { name: "opendxp.datahub.data_importer.operator", type: "combine" }
 
     OpenDxp\Bundle\DataImporterBundle\Mapping\Operator\Simple\HtmlDecode:
         tags:
-            - { name: "pimcore.datahub.data_importer.operator", type: "htmlDecode" }
+            - { name: "opendxp.datahub.data_importer.operator", type: "htmlDecode" }
 
     OpenDxp\Bundle\DataImporterBundle\Mapping\Operator\Simple\ImportAsset:
         tags:
-            - { name: "pimcore.datahub.data_importer.operator", type: "importAsset" }
+            - { name: "opendxp.datahub.data_importer.operator", type: "importAsset" }
 
     OpenDxp\Bundle\DataImporterBundle\Mapping\Operator\Simple\LoadAsset:
         tags:
-            - { name: "pimcore.datahub.data_importer.operator", type: "loadAsset" }
+            - { name: "opendxp.datahub.data_importer.operator", type: "loadAsset" }
 
     OpenDxp\Bundle\DataImporterBundle\Mapping\Operator\Simple\LoadDataObject:
         tags:
-            - { name: "pimcore.datahub.data_importer.operator", type: "loadDataObject" }
+            - { name: "opendxp.datahub.data_importer.operator", type: "loadDataObject" }
 
     OpenDxp\Bundle\DataImporterBundle\Mapping\Operator\Simple\ObjectField:
         tags:
-            - { name: "pimcore.datahub.data_importer.operator", type: "objectField" }
+            - { name: "opendxp.datahub.data_importer.operator", type: "objectField" }
+
+    OpenDxp\Bundle\DataImporterBundle\Mapping\Operator\Simple\NumericRangeCombine:
+        tags:
+            - { name: "opendxp.datahub.data_importer.operator", type: "numericRange" }
 
     # -------------------
     # factory operators
     # -------------------
     OpenDxp\Bundle\DataImporterBundle\Mapping\Operator\Factory\Numeric:
         tags:
-            - { name: "pimcore.datahub.data_importer.operator", type: "numeric" }
+            - { name: "opendxp.datahub.data_importer.operator", type: "numeric" }
 
     OpenDxp\Bundle\DataImporterBundle\Mapping\Operator\Factory\QuantityValue:
         tags:
-            - { name: "pimcore.datahub.data_importer.operator", type: "quantityValue" }
+            - { name: "opendxp.datahub.data_importer.operator", type: "quantityValue" }
 
     OpenDxp\Bundle\DataImporterBundle\Mapping\Operator\Factory\QuantityValueArray:
         tags:
-            - { name: "pimcore.datahub.data_importer.operator", type: "quantityValueArray" }
+            - { name: "opendxp.datahub.data_importer.operator", type: "quantityValueArray" }
 
     OpenDxp\Bundle\DataImporterBundle\Mapping\Operator\Factory\InputQuantityValue:
         tags:
-            - { name: "pimcore.datahub.data_importer.operator", type: "inputQuantityValue" }
+            - { name: "opendxp.datahub.data_importer.operator", type: "inputQuantityValue" }
 
     OpenDxp\Bundle\DataImporterBundle\Mapping\Operator\Factory\InputQuantityValueArray:
         tags:
-            - { name: "pimcore.datahub.data_importer.operator", type: "inputQuantityValueArray" }
+            - { name: "opendxp.datahub.data_importer.operator", type: "inputQuantityValueArray" }
 
     OpenDxp\Bundle\DataImporterBundle\Mapping\Operator\Factory\Boolean:
         tags:
-            - { name: "pimcore.datahub.data_importer.operator", type: "boolean" }
+            - { name: "opendxp.datahub.data_importer.operator", type: "boolean" }
 
     OpenDxp\Bundle\DataImporterBundle\Mapping\Operator\Factory\Date:
         tags:
-            - { name: "pimcore.datahub.data_importer.operator", type: "date" }
+            - { name: "opendxp.datahub.data_importer.operator", type: "date" }
 
     OpenDxp\Bundle\DataImporterBundle\Mapping\Operator\Factory\Time:
         tags:
-            - { name: "pimcore.datahub.data_importer.operator", type: "time" }
+            - { name: "opendxp.datahub.data_importer.operator", type: "time" }
 
     OpenDxp\Bundle\DataImporterBundle\Mapping\Operator\Factory\Gallery:
         tags:
-            - { name: "pimcore.datahub.data_importer.operator", type: "gallery" }
+            - { name: "opendxp.datahub.data_importer.operator", type: "gallery" }
 
     OpenDxp\Bundle\DataImporterBundle\Mapping\Operator\Factory\ImageAdvanced:
         tags:
-            - { name: "pimcore.datahub.data_importer.operator", type: "imageAdvanced" }
+            - { name: "opendxp.datahub.data_importer.operator", type: "imageAdvanced" }
 
     OpenDxp\Bundle\DataImporterBundle\Mapping\Operator\Factory\AsArray:
         tags:
-            - { name: "pimcore.datahub.data_importer.operator", type: "asArray" }
+            - { name: "opendxp.datahub.data_importer.operator", type: "asArray" }
 
     OpenDxp\Bundle\DataImporterBundle\Mapping\Operator\Factory\AsGeopoint:
         tags:
-            - { name: "pimcore.datahub.data_importer.operator", type: "asGeopoint" }
+            - { name: "opendxp.datahub.data_importer.operator", type: "asGeopoint" }
 
     OpenDxp\Bundle\DataImporterBundle\Mapping\Operator\Factory\AsGeobounds:
         tags:
-            - { name: "pimcore.datahub.data_importer.operator", type: "asGeobounds" }
+            - { name: "opendxp.datahub.data_importer.operator", type: "asGeobounds" }
 
     OpenDxp\Bundle\DataImporterBundle\Mapping\Operator\Factory\AsGeopolygon:
         tags:
-            - { name: "pimcore.datahub.data_importer.operator", type: "asGeopolygon" }
+            - { name: "opendxp.datahub.data_importer.operator", type: "asGeopolygon" }
 
     OpenDxp\Bundle\DataImporterBundle\Mapping\Operator\Factory\AsGeopolyline:
         tags:
-            - { name: "pimcore.datahub.data_importer.operator", type: "asGeopolyline" }
+            - { name: "opendxp.datahub.data_importer.operator", type: "asGeopolyline" }
 
     OpenDxp\Bundle\DataImporterBundle\Mapping\Operator\Factory\AsColor:
          tags:
-            - { name: "pimcore.datahub.data_importer.operator", type: "asColor" }
+            - { name: "opendxp.datahub.data_importer.operator", type: "asColor" }
 
     OpenDxp\Bundle\DataImporterBundle\Mapping\Operator\Factory\AsCountries:
         tags:
-            - { name: "pimcore.datahub.data_importer.operator", type: "asCountries" }
+            - { name: "opendxp.datahub.data_importer.operator", type: "asCountries" }
 
 
     # ---------------------
@@ -147,16 +147,16 @@ services:
     # ---------------------
     OpenDxp\Bundle\DataImporterBundle\Mapping\DataTarget\Direct:
         tags:
-            - { name: "pimcore.datahub.data_importer.data_target", type: "direct" }
+            - { name: "opendxp.datahub.data_importer.data_target", type: "direct" }
 
     OpenDxp\Bundle\DataImporterBundle\Mapping\DataTarget\ManyToManyRelation:
         tags:
-            - { name: "pimcore.datahub.data_importer.data_target", type: "manyToManyRelation" }
+            - { name: "opendxp.datahub.data_importer.data_target", type: "manyToManyRelation" }
 
     OpenDxp\Bundle\DataImporterBundle\Mapping\DataTarget\Classificationstore:
         tags:
-            - { name: "pimcore.datahub.data_importer.data_target", type: "classificationstore" }
+            - { name: "opendxp.datahub.data_importer.data_target", type: "classificationstore" }
 
     OpenDxp\Bundle\DataImporterBundle\Mapping\DataTarget\ClassificationstoreBatch:
         tags:
-            - { name: "pimcore.datahub.data_importer.data_target", type: "classificationstoreBatch" }
+            - { name: "opendxp.datahub.data_importer.data_target", type: "classificationstoreBatch" }

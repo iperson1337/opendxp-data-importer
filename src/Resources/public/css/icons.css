@@ -17,7 +17,7 @@
     background-color: #f6f6f6;
 }
 
-.plugin_pimcore_datahub_icon_mapping_remove .x-tool-img.x-tool-close {
+.plugin_opendxp_datahub_icon_mapping_remove .x-tool-img.x-tool-close {
     background-image: none;
     color: #F03C28;
     background-color: inherit;
@@ -37,19 +37,19 @@
     background-color: #f6f6f6;
 }
 
-.plugin_pimcore_datahub_icon_dataImporterDataObject {
-    background: url(/bundles/pimcoreadmin/img/flat-color-icons/feed_in.svg) center center no-repeat !important;
+.plugin_opendxp_datahub_icon_dataImporterDataObject {
+    background: url(/bundles/opendxpadmin/img/flat-color-icons/feed_in.svg) center center no-repeat !important;
 }
 
-.plugin_pimcore_datahub_icon_next {
-    background: url(/bundles/pimcoreadmin/img/flat-color-icons/next.svg) center center no-repeat !important;
+.plugin_opendxp_datahub_icon_next {
+    background: url(/bundles/opendxpadmin/img/flat-color-icons/next.svg) center center no-repeat !important;
 }
-.plugin_pimcore_datahub_icon_previous {
-    background: url(/bundles/pimcoreadmin/img/flat-color-icons/previous.svg) center center no-repeat !important;
+.plugin_opendxp_datahub_icon_previous {
+    background: url(/bundles/opendxpadmin/img/flat-color-icons/previous.svg) center center no-repeat !important;
 }
-.plugin_pimcore_datahub_icon_wizard {
-    background: url(/bundles/pimcoreadmin/img/flat-color-icons/idea.svg) center center no-repeat !important;
+.plugin_opendxp_datahub_icon_wizard {
+    background: url(/bundles/opendxpadmin/img/flat-color-icons/idea.svg) center center no-repeat !important;
 }
-.plugin_pimcore_datahub_icon_collapse {
-    background: url(/bundles/pimcoreadmin/img/flat-color-icons/menu.svg) center center no-repeat !important;
+.plugin_opendxp_datahub_icon_collapse {
+    background: url(/bundles/opendxpadmin/img/flat-color-icons/menu.svg) center center no-repeat !important;
 }
