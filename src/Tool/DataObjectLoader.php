@@ -76,36 +76,34 @@ class DataObjectLoader
             $className::setHideUnpublished(false);
         }
 
-        if ($this->isObjectBrickAttribute($attributeName) === false && $operator === '=') {
-            $getter = 'getBy' . $attributeName;
-            if (empty($attributeLanguage) === false) {
-                $element = $className::$getter($identifier, $attributeLanguage, $limit, 0, $objectTypes);
-            } else {
-                if (method_exists($className, $getter)) {
-                    $element = $className::$getter($identifier);
-                }
-
-                if (!$element) {
-                    $element = $className::$getter($identifier, $limit, 0, $objectTypes);
-                }
-            }
-        } else {
-            $queryFieldName = $attributeName;
-            if ($this->isObjectBrickAttribute($attributeName) === true) {
-                $objectBrickParts = $this->getObjectBrickParts($attributeName);
-                $queryFieldName = $this->getAttributeNameFromParts($objectBrickParts, false);
-                $conditions = ['objectbricks' => [$objectBrickParts[self::BRICK_NAME]]];
-            }
-            $conditions['condition'] = $queryFieldName . ' ' . $operator . ' ' . Db::get()->quote($identifier);
-            if ($limit > 0) {
-                $conditions['limit'] = $limit;
-            }
-            $conditions['objectTypes'] = $objectTypes;
-            $list = $className::getList($conditions);
-            $dataObjects = $list->load();
-            if (empty($dataObjects) === false) {
-                $element = $dataObjects[0];
-            }
+        // getList() uses named condition keys instead of the magic `getBy<Attribute>()` static
+        // getter, whose positional args shift unpredictably depending on whether the target
+        // field turns out to be localized (mismatched with $attributeLanguage crashes makeList()).
+        $conditions = [];
+        $queryFieldName = $attributeName;
+        if ($this->isObjectBrickAttribute($attributeName) === true) {
+            $objectBrickParts = $this->getObjectBrickParts($attributeName);
+            $queryFieldName = $this->getAttributeNameFromParts($objectBrickParts, false);
+            $conditions['objectbricks'] = [$objectBrickParts[self::BRICK_NAME]];
+        }
+        // MDM-724: идентификатор из источника тримится. Выгрузки из ПРОГРЕСС носят
+        // nchar-паддинг («880911163632 »), а коллация колонок в MySQL 8 —
+        // utf8mb4_0900_ai_ci, то есть NO PAD: хвостовые пробелы в `=` значимы, и
+        // такой идентификатор не находит существующую карточку. Дальше импорт считает
+        // её отсутствующей и создаёт дубликат (либо падает на проверке уникальности
+        // штрихкода — см. App\Service\Product\Barcode\ProductBarcodeNormalizer).
+        $conditions['condition'] = Db::get()->quoteIdentifier($queryFieldName) . ' ' . $operator . ' ' . Db::get()->quote(trim($identifier));
+        if ($limit > 0) {
+            $conditions['limit'] = $limit;
+        }
+        $conditions['objectTypes'] = $objectTypes;
+        if (empty($attributeLanguage) === false) {
+            $conditions['locale'] = $attributeLanguage;
+        }
+        $list = $className::getList($conditions);
+        $dataObjects = $list->load();
+        if (empty($dataObjects) === false) {
+            $element = $dataObjects[0];
         }
 
         if ($element instanceof ElementInterface) {

@@ -109,8 +109,14 @@ class LoadDataObject extends AbstractOperator
             $logMessage = '';
             if (empty($data) === false || $data === '0') {
                 if ($this->loadStrategy === self::LOAD_STRATEGY_PATH) {
-                    $object = $this->dataObjectLoader->loadByPath(trim((string) $data));
-                    $logMessage = 'by path `' . trim((string) $data) . '`';
+                    // Наши source-файлы иногда дают путь с трейлинг-слэшем, по которому
+                    // loadByPath() не находит ничего. Путь "/" целиком — не трогаем.
+                    $path = trim((string) $data);
+                    if ($path !== '/' && str_ends_with($path, '/')) {
+                        $path = rtrim($path, '/');
+                    }
+                    $object = $this->dataObjectLoader->loadByPath($path);
+                    $logMessage = 'by path `' . $path . '`';
                 } elseif ($this->loadStrategy === self::LOAD_STRATEGY_ID) {
                     $object = $this->dataObjectLoader->loadById(trim((string) $data));
                     $logMessage = 'by id `' . trim((string) $data) . '`';

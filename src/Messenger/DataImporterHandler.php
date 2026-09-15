@@ -45,11 +45,17 @@ class DataImporterHandler
 
     public function __invoke(DataImporterMessage $message)
     {
-        foreach ($message->getIds() as $id) {
-            $this->importProcessingService->processQueueItem($id);
+        try {
+            foreach ($message->getIds() as $id) {
+                $this->importProcessingService->processQueueItem($id);
+            }
+        } finally {
+            // Always release the worker-count marker, even if a queue item throws something
+            // processQueueItem() didn't catch — otherwise dispatchMessages() stays convinced
+            // a worker is still running until the marker's lifetime (default 30 min) expires.
+            $this->removeMessage($message->getMessageId());
         }
 
-        $this->removeMessage($message->getMessageId());
         $this->dispatchMessages($message->getExecutionType());
     }
 
@@ -63,8 +69,13 @@ class DataImporterHandler
             if (!empty($ids)) {
                 $messageId = uniqid();
 
-                $this->addMessage($messageId, $executionType);
+                // Dispatch before marking the worker as running: if the process dies right
+                // here, a dispatch that never happened leaves no orphaned marker behind — the
+                // previous order left a multi-minute window where a killed process (e.g. a
+                // container restart) could set the marker, get killed before/while sending the
+                // message, and leave dispatchMessages() blocked for the marker's full lifetime.
                 $this->messageBus->dispatch(new DataImporterMessage($executionType, $ids, $messageId));
+                $this->addMessage($messageId, $executionType);
                 $dispatchedMessageCount = $this->getMessageCount($executionType);
             } else {
                 $addWorkers = false;

@@ -140,6 +140,13 @@ class MultiAttributeLoadStrategy extends AbstractLoad
         }
 
         foreach ($identifiers as $attributeName => $value) {
+            // MDM-724: то же, что и в DataObjectLoader::loadByAttribute() — выгрузки из
+            // ПРОГРЕСС носят nchar-паддинг, а коллация колонок NO PAD, поэтому
+            // нетримленный идентификатор мимо существующей записи промахивается.
+            if (is_string($value)) {
+                $value = trim($value);
+            }
+
             $fieldDefinition = $list->getClass()->getFieldDefinition($attributeName);
 
             if ($fieldDefinition) {

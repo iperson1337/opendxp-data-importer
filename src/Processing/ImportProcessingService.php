@@ -241,10 +241,15 @@ class ImportProcessingService
                     'relatedObject' => $element,
                 ]);
             } else {
+                // MDM-724: строка, для которой объект не нашёлся, — это результат прогона,
+                // который человек должен увидеть: с «Do not create» она молча ничего не
+                // обновляет. Поэтому warning, а не info (иначе тонет среди «imported
+                // successfully»), и идентификатор прямо в тексте, а не только внутри
+                // fileObject.
                 $reflection = new ReflectionClass($resolver->getLoadingStrategy());
-                $message = "No match by {$reflection->getShortName()} with 'Do not create' location strategy";
-                $this->logger->info($message);
-                $this->applicationLogger->info($message, [
+                $message = "No match by {$reflection->getShortName()} with 'Do not create' location strategy: {$importDataRowString}";
+                $this->logger->warning($message);
+                $this->applicationLogger->warning($message, [
                     'component' => OpenDxpDataImporterBundle::LOGGER_COMPONENT_PREFIX . $configName,
                     'fileObject' => new FileObject(json_encode($importDataRow)),
                 ]);
