@@ -154,7 +154,7 @@ class ImportProcessingService
             $component = $configName ? OpenDxpDataImporterBundle::LOGGER_COMPONENT_PREFIX . $configName : null;
             $fileObject = $queueItem ? new FileObject(json_encode($queueItem['data'])) : null;
 
-            $this->applicationLogger->error($e->getMessage() . $e->getMessage(), [
+            $this->applicationLogger->error($e->getMessage(), [
                 'component' => $component,
                 'fileObject' => $fileObject,
             ]);
@@ -255,7 +255,9 @@ class ImportProcessingService
                 ]);
             }
         } catch (Throwable $e) {
-            $message = "Error processing element: {$importDataRowString}";
+            // Строку файла и причину разделяет « → »: без разделителя последняя колонка
+            // склеивалась с текстом исключения («…8500Штук в шоубоксе: …»)
+            $message = "Error processing element: {$importDataRowString} → ";
             $this->logger->error($message . $e);
 
             $this->applicationLogger->error($message . $e->getMessage(), [
