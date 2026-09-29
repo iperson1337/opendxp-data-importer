@@ -44,8 +44,9 @@ opendxp.plugin.opendxpDataImporterBundle.configuration.components.execution = Cl
                 ],
             });
 
-            // Файл для импорта из ресурса — без захода в «Ресурсы»: скачать шаблон,
-            // загрузить заполненный файл в тот же ассет и сразу запустить импорт
+            // Файл для импорта из ресурса — без захода в «Ресурсы»: скачать шаблон и
+            // загрузить заполненный файл в тот же ассет. Запуск — кнопкой «Запустить».
+            // Только для источника «Ресурс» — см. updateDisabledState()
             this.assetFileContainer = Ext.create('Ext.form.FieldContainer', {
                 fieldLabel: t('plugin_opendxp_datahub_data_importer_configpanel_execution_import_file'),
                 layout: 'hbox',
@@ -237,8 +238,9 @@ opendxp.plugin.opendxpDataImporterBundle.configuration.components.execution = Cl
                             this.scheduleTypes,
                             this.cronDefinitionContainer,
                             this.scheduledAtContainer,
-                            this.buttonFieldContainer,
-                            this.assetFileContainer
+                            // Сверху вниз: скачать шаблон → загрузить файл → запустить
+                            this.assetFileContainer,
+                            this.buttonFieldContainer
                         ]
                     },{
                         xtype: 'fieldset',
@@ -380,13 +382,13 @@ opendxp.plugin.opendxpDataImporterBundle.configuration.components.execution = Cl
                 // Поле выбора файла в ExtJS всегда readOnly, а тема OpenDXP гасит readOnly-поля
                 // до opacity 0.7 — кнопка выглядела бы неактивной
                 style: 'opacity: 1',
-                buttonText: t('plugin_opendxp_datahub_data_importer_configpanel_execution_upload_and_start'),
+                buttonText: t('plugin_opendxp_datahub_data_importer_configpanel_execution_upload'),
                 buttonConfig: {
                     iconCls: 'opendxp_icon_upload',
                     width: 250
                 },
                 listeners: {
-                    change: this.uploadAndStart.bind(this)
+                    change: this.upload.bind(this)
                 }
             }]
         });
@@ -394,13 +396,13 @@ opendxp.plugin.opendxpDataImporterBundle.configuration.components.execution = Cl
         return this.uploadForm;
     },
 
-    uploadAndStart: function(field) {
+    upload: function(field) {
         if (!field.getValue()) {
             return;
         }
 
         this.uploadForm.getForm().submit({
-            url: Routing.generate('opendxp_dataimporter_configdataobject_uploadtoassetandstart', {
+            url: Routing.generate('opendxp_dataimporter_configdataobject_uploadtoasset', {
                 config_name: this.configName
             }),
             params: {
@@ -408,19 +410,16 @@ opendxp.plugin.opendxpDataImporterBundle.configuration.components.execution = Cl
             },
             waitMsg: t('please_wait'),
             success: function() {
-                opendxp.helpers.showNotification(t('success'), t('plugin_opendxp_datahub_data_importer_configpanel_execution_upload_and_start_successful'), 'success');
+                opendxp.helpers.showNotification(t('success'), t('plugin_opendxp_datahub_data_importer_configpanel_execution_upload_successful'), 'success');
                 this.uploadForm.getForm().reset();
-                this.lastRunning = true;
-                this.updateProgress();
             }.bind(this),
             failure: function(form, action) {
-                let message = t('plugin_opendxp_datahub_data_importer_configpanel_execution_start_error');
+                let message = t('error_general');
                 if (action.result && action.result.message) {
                     message = action.result.message;
                 }
                 opendxp.helpers.showNotification(t('error'), message, 'error');
                 this.uploadForm.getForm().reset();
-                this.updateProgress();
             }.bind(this)
         });
     },

@@ -654,16 +654,15 @@ class ConfigDataObjectController extends UserAwareController
     }
 
     /**
-     * Загружает заполненный файл в ассет, который читает импорт, и сразу запускает импорт —
-     * без захода в «Ресурсы». Доступ — как на чтение конфига (тот же, что у «Запустить»).
+     * Загружает заполненный файл в ассет, который читает импорт, — без захода в «Ресурсы».
+     * Импорт не запускает: это делает «Запустить». Доступ — как на чтение конфига.
      */
-    #[Route('/upload-to-asset-and-start', methods: ['POST'])]
-    public function uploadToAssetAndStartAction(
+    #[Route('/upload-to-asset', methods: ['POST'])]
+    public function uploadToAssetAction(
         Request $request,
         ConfigurationPreparationService $configurationPreparationService,
         ImportFileService $importFileService,
-        ImportProcessingService $importProcessingService,
-        ImportPreparationService $importPreparationService
+        ImportProcessingService $importProcessingService
     ): JsonResponse {
         $this->checkPermission(self::CONFIG_NAME);
 
@@ -677,24 +676,21 @@ class ConfigDataObjectController extends UserAwareController
                 throw new InvalidConfigurationException('Файл не загружен.');
             }
 
+            // Сам импорт уже прочитал файл при подготовке, но подмена посреди выполнения путает:
+            // сводка и журнал относились бы не к тому файлу, что лежит в ресурсе
             if ($importProcessingService->getImportStatus($configName)['isRunning'] ?? false) {
                 throw new InvalidConfigurationException('Импорт ещё выполняется — дождитесь окончания или отмените его.');
             }
 
             $importFileService->validateUpload($config, $file->getPathname(), $file->getClientOriginalName());
-            $asset = $importFileService->store(
+            $importFileService->store(
                 $config,
                 (string) file_get_contents($file->getPathname()),
                 (int) $this->getOpenDxpUser()->getId(),
                 $file->getClientOriginalName()
             );
 
-            $started = $importPreparationService->prepareImport($configName, true);
-
-            return $this->jsonResponse([
-                'success' => $started,
-                'message' => $started ? null : 'Файл загружен в ' . $asset->getRealFullPath() . ', но импорт не запустился — см. логи.',
-            ]);
+            return $this->jsonResponse(['success' => true]);
         } catch (InvalidConfigurationException $e) {
             return $this->jsonResponse(['success' => false, 'message' => $e->getMessage()]);
         } catch (Exception $e) {
