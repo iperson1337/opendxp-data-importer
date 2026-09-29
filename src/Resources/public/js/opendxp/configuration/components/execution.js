@@ -44,6 +44,23 @@ opendxp.plugin.opendxpDataImporterBundle.configuration.components.execution = Cl
                 ],
             });
 
+            // Файл для импорта из ресурса — без захода в «Ресурсы»: скачать шаблон,
+            // загрузить заполненный файл в тот же ассет и сразу запустить импорт
+            this.assetFileContainer = Ext.create('Ext.form.FieldContainer', {
+                fieldLabel: t('plugin_opendxp_datahub_data_importer_configpanel_execution_import_file'),
+                layout: 'hbox',
+                items: [
+                    {
+                        xtype: 'button',
+                        iconCls: 'opendxp_icon_download',
+                        text: t('plugin_opendxp_datahub_data_importer_configpanel_execution_download_template'),
+                        margin: '0 10 0 0',
+                        handler: this.downloadTemplate.bind(this)
+                    },
+                    this.buildUploadForm()
+                ]
+            });
+
             this.scheduleTypes = Ext.create('Ext.form.FieldContainer', {
                 fieldLabel: t('plugin_opendxp_datahub_data_importer_configpanel_execution_schedule_type'),
                 items: [{
@@ -198,7 +215,8 @@ opendxp.plugin.opendxpDataImporterBundle.configuration.components.execution = Cl
                             this.scheduleTypes,
                             this.cronDefinitionContainer,
                             this.scheduledAtContainer,
-                            this.buttonFieldContainer
+                            this.buttonFieldContainer,
+                            this.assetFileContainer
                         ]
                     },{
                         xtype: 'fieldset',
@@ -237,6 +255,100 @@ opendxp.plugin.opendxpDataImporterBundle.configuration.components.execution = Cl
     updateDisabledState: function() {
         this.cronDefinitionContainer.setDisabled(this.currentLoaderType === 'push');
         this.buttonFieldContainer.setDisabled(this.currentLoaderType === 'push' || this.currentDirtyState);
+        // Путь файла берётся из сохранённого конфига — при несохранённых правках он может отличаться
+        this.assetFileContainer.setHidden(this.currentLoaderType !== 'asset');
+        this.assetFileContainer.setDisabled(this.currentDirtyState);
+    },
+
+    downloadTemplate: function() {
+        const url = Routing.generate('opendxp_dataimporter_configdataobject_downloadimporttemplate', {
+            config_name: this.configName
+        });
+
+        // Сначала запрос, потом сохранение: ошибку (нет доступа, нет шаблона) надо показать,
+        // а не открыть пустую страницу
+        fetch(url, {credentials: 'same-origin'}).then(function(response) {
+            if (!response.ok) {
+                return response.text().then(function(text) {
+                    const message = response.status === 403 ? t('access_denied') : (text && text.length < 300 ? text : t('error_general'));
+                    opendxp.helpers.showNotification(t('error'), message, 'error');
+                });
+            }
+
+            const disposition = response.headers.get('Content-Disposition') || '';
+            const match = disposition.match(/filename\*=UTF-8''([^;]+)/i);
+            const filename = match ? decodeURIComponent(match[1]) : this.configName + '.xlsx';
+
+            return response.blob().then(function(blob) {
+                const link = document.createElement('a');
+                link.href = URL.createObjectURL(blob);
+                link.download = filename;
+                document.body.appendChild(link);
+                link.click();
+                link.remove();
+                setTimeout(function() { URL.revokeObjectURL(link.href); }, 1000);
+            });
+        }.bind(this)).catch(function() {
+            opendxp.helpers.showNotification(t('error'), t('error_general'), 'error');
+        });
+    },
+
+    buildUploadForm: function() {
+        this.uploadForm = Ext.create('Ext.form.Panel', {
+            border: false,
+            width: 260,
+            style: 'background: transparent',
+            bodyStyle: 'background: transparent; padding: 0',
+            items: [{
+                xtype: 'fileuploadfield',
+                name: 'Filedata',
+                buttonOnly: true,
+                hideLabel: true,
+                // Поле выбора файла в ExtJS всегда readOnly, а тема OpenDXP гасит readOnly-поля
+                // до opacity 0.7 — кнопка выглядела бы неактивной
+                style: 'opacity: 1',
+                buttonText: t('plugin_opendxp_datahub_data_importer_configpanel_execution_upload_and_start'),
+                buttonConfig: {
+                    iconCls: 'opendxp_icon_upload',
+                    width: 250
+                },
+                listeners: {
+                    change: this.uploadAndStart.bind(this)
+                }
+            }]
+        });
+
+        return this.uploadForm;
+    },
+
+    uploadAndStart: function(field) {
+        if (!field.getValue()) {
+            return;
+        }
+
+        this.uploadForm.getForm().submit({
+            url: Routing.generate('opendxp_dataimporter_configdataobject_uploadtoassetandstart', {
+                config_name: this.configName
+            }),
+            params: {
+                csrfToken: opendxp.settings['csrfToken']
+            },
+            waitMsg: t('please_wait'),
+            success: function() {
+                opendxp.helpers.showNotification(t('success'), t('plugin_opendxp_datahub_data_importer_configpanel_execution_upload_and_start_successful'), 'success');
+                this.uploadForm.getForm().reset();
+                this.updateProgress();
+            }.bind(this),
+            failure: function(form, action) {
+                let message = t('plugin_opendxp_datahub_data_importer_configpanel_execution_start_error');
+                if (action.result && action.result.message) {
+                    message = action.result.message;
+                }
+                opendxp.helpers.showNotification(t('error'), message, 'error');
+                this.uploadForm.getForm().reset();
+                this.updateProgress();
+            }.bind(this)
+        });
     },
 
     startImport: function(button) {

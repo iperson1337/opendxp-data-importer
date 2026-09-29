@@ -28,6 +28,8 @@ services:
     OpenDxp\Bundle\DataImporterBundle\Processing\ExecutionService: ~
     OpenDxp\Bundle\DataImporterBundle\Settings\ConfigurationPreparationService: ~
     OpenDxp\Bundle\DataImporterBundle\Preview\PreviewService: ~
+    OpenDxp\Bundle\DataImporterBundle\Template\ImportTemplateBuilder: ~
+    OpenDxp\Bundle\DataImporterBundle\Template\ImportFileService: ~
     OpenDxp\Bundle\DataImporterBundle\EventListener\ConfigurationEventSubscriber: ~
     OpenDxp\Bundle\DataImporterBundle\EventListener\DataImporterListener:
         tags:

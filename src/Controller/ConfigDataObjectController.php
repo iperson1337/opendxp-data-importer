@@ -32,14 +32,17 @@ use OpenDxp\Bundle\DataImporterBundle\Preview\PreviewService;
 use OpenDxp\Bundle\DataImporterBundle\Processing\ImportPreparationService;
 use OpenDxp\Bundle\DataImporterBundle\Processing\ImportProcessingService;
 use OpenDxp\Bundle\DataImporterBundle\Settings\ConfigurationPreparationService;
+use OpenDxp\Bundle\DataImporterBundle\Template\ImportFileService;
 use OpenDxp\Controller\Traits\JsonHelperTrait;
 use OpenDxp\Controller\UserAwareController;
 use OpenDxp\Logger;
 use OpenDxp\Model\DataObject;
 use OpenDxp\Model\DataObject\QuantityValue\Unit;
 use OpenDxp\Translation\Translator;
+use Symfony\Component\HttpFoundation\HeaderUtils;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 
 #[Route('/admin/opendxpdataimporter/dataobject/config')]
@@ -617,6 +620,86 @@ class ConfigDataObjectController extends UserAwareController
                 'success' => false,
                 'message' => $e->getMessage(),
             ]);
+        }
+    }
+
+    /**
+     * Шаблон файла импорта для asset-источника: «<файл> — шаблон» рядом с рабочим файлом
+     * или собранный из маппинга. Доступ — как на чтение конфига.
+     */
+    #[Route('/download-import-template', methods: ['GET'])]
+    public function downloadImportTemplateAction(
+        Request $request,
+        ConfigurationPreparationService $configurationPreparationService,
+        ImportFileService $importFileService
+    ): Response {
+        $this->checkPermission(self::CONFIG_NAME);
+
+        $config = $configurationPreparationService->prepareConfiguration((string) $request->query->get('config_name'));
+
+        try {
+            $template = $importFileService->template($config);
+        } catch (InvalidConfigurationException $e) {
+            return new Response($e->getMessage(), Response::HTTP_BAD_REQUEST, ['Content-Type' => 'text/plain; charset=utf-8']);
+        }
+
+        $filename = $template['filename'];
+        $fallback = preg_replace('/[^A-Za-z0-9._-]/', '_', $filename) ?: 'template';
+
+        return new Response($template['content'], Response::HTTP_OK, [
+            'Content-Type' => 'application/octet-stream',
+            'Content-Disposition' => HeaderUtils::makeDisposition(HeaderUtils::DISPOSITION_ATTACHMENT, $filename, $fallback),
+        ]);
+    }
+
+    /**
+     * Загружает заполненный файл в ассет, который читает импорт, и сразу запускает импорт —
+     * без захода в «Ресурсы». Доступ — как на чтение конфига (тот же, что у «Запустить»).
+     */
+    #[Route('/upload-to-asset-and-start', methods: ['POST'])]
+    public function uploadToAssetAndStartAction(
+        Request $request,
+        ConfigurationPreparationService $configurationPreparationService,
+        ImportFileService $importFileService,
+        ImportProcessingService $importProcessingService,
+        ImportPreparationService $importPreparationService
+    ): JsonResponse {
+        $this->checkPermission(self::CONFIG_NAME);
+
+        $configName = (string) $request->query->get('config_name');
+
+        try {
+            $config = $configurationPreparationService->prepareConfiguration($configName);
+
+            $file = $request->files->get('Filedata');
+            if (!$file || !$file->isValid()) {
+                throw new InvalidConfigurationException('Файл не загружен.');
+            }
+
+            if ($importProcessingService->getImportStatus($configName)['isRunning'] ?? false) {
+                throw new InvalidConfigurationException('Импорт ещё выполняется — дождитесь окончания или отмените его.');
+            }
+
+            $importFileService->validateUpload($config, $file->getPathname(), $file->getClientOriginalName());
+            $asset = $importFileService->store(
+                $config,
+                (string) file_get_contents($file->getPathname()),
+                (int) $this->getOpenDxpUser()->getId(),
+                $file->getClientOriginalName()
+            );
+
+            $started = $importPreparationService->prepareImport($configName, true);
+
+            return $this->jsonResponse([
+                'success' => $started,
+                'message' => $started ? null : 'Файл загружен в ' . $asset->getRealFullPath() . ', но импорт не запустился — см. логи.',
+            ]);
+        } catch (InvalidConfigurationException $e) {
+            return $this->jsonResponse(['success' => false, 'message' => $e->getMessage()]);
+        } catch (Exception $e) {
+            Logger::error($e);
+
+            return $this->jsonResponse(['success' => false, 'message' => $e->getMessage()]);
         }
     }
 
