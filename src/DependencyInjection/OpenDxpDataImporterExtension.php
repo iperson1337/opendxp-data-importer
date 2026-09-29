@@ -51,6 +51,7 @@ class OpenDxpDataImporterExtension extends Extension implements PrependExtension
         $definition->setArgument('$workerCountLifeTime', $config['messenger_queue_processing']['worker_count_lifetime']);
         $definition->setArgument('$workerItemCount', $config['messenger_queue_processing']['worker_item_count']);
         $definition->setArgument('$workerCountParallel', $config['messenger_queue_processing']['worker_count_parallel']);
+        $definition->setArgument('$workerHeartbeatTimeout', $config['messenger_queue_processing']['worker_heartbeat_timeout']);
 
         $definition = $container->getDefinition(DataImporterListener::class);
         $definition->setArgument('$messengerQueueActivated', $config['messenger_queue_processing']['activated']);

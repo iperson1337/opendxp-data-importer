@@ -168,6 +168,46 @@ class QueueService
      *
      * @throws Exception
      */
+    /**
+     * Какие из переданных id ещё лежат в очереди (не обработаны и не отменены).
+     *
+     * @param int[] $ids
+     *
+     * @return int[]
+     */
+    public function filterExistingIds(array $ids): array
+    {
+        $ids = array_values(array_filter(array_map('intval', $ids)));
+        if ($ids === []) {
+            return [];
+        }
+
+        try {
+            return array_map('intval', $this->getDb()->fetchFirstColumn(
+                sprintf('SELECT id FROM %s WHERE id IN (%s)', self::QUEUE_TABLE_NAME, implode(',', $ids))
+            ));
+        } catch (TableNotFoundException) {
+            return [];
+        }
+    }
+
+    /**
+     * Вернуть строки в очередь как не отданные воркеру — их пачку держал убитый воркер.
+     *
+     * @param int[] $ids
+     */
+    public function resetDispatched(array $ids): void
+    {
+        $ids = array_values(array_filter(array_map('intval', $ids)));
+        if ($ids === []) {
+            return;
+        }
+
+        $this->getDb()->executeStatement(
+            sprintf('UPDATE %s SET dispatched = NULL, workerId = NULL WHERE id IN (%s)', self::QUEUE_TABLE_NAME, implode(',', $ids))
+        );
+    }
+
     public function markQueueEntryAsProcessed($id): void
     {
         try {

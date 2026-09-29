@@ -45,6 +45,10 @@ class Configuration implements ConfigurationInterface
                         ->defaultValue(60 * 30) //30 minutes
                         ->info('Lifetime of tmp store entry for current worker count entry. After lifetime, the value will be cleared. Default to 30 minutes.')
                     ->end()
+                    ->integerNode('worker_heartbeat_timeout')
+                        ->defaultValue(300)
+                        ->info('Seconds without a worker heartbeat (taken before every queue item) after which its batch is considered dead: its markers stop blocking dispatch and its unprocessed items go back to the queue.')
+                    ->end()
                     ->integerNode('worker_count_parallel')
                         ->defaultValue(3)
                         ->info('Count of maximum parallel worker messages for parallel imports.')
