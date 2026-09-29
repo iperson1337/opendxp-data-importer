@@ -25,6 +25,7 @@ use OpenDxp\Bundle\DataImporterBundle\DataSource\Interpreter\InterpreterFactory;
 use OpenDxp\Bundle\DataImporterBundle\DataSource\Loader\DataLoaderFactory;
 use OpenDxp\Bundle\DataImporterBundle\DataSource\Loader\PushLoader;
 use OpenDxp\Bundle\DataImporterBundle\Exception\InvalidConfigurationException;
+use OpenDxp\Bundle\DataImporterBundle\Log\ImportLogService;
 use OpenDxp\Bundle\DataImporterBundle\Mapping\MappingConfigurationFactory;
 use OpenDxp\Bundle\DataImporterBundle\Mapping\Type\ClassificationStoreDataTypeService;
 use OpenDxp\Bundle\DataImporterBundle\Mapping\Type\TransformationDataTypeService;
@@ -701,6 +702,49 @@ class ConfigDataObjectController extends UserAwareController
 
             return $this->jsonResponse(['success' => false, 'message' => $e->getMessage()]);
         }
+    }
+
+    /**
+     * Журнал одного импорта — для тех, у кого нет `application_logging`. Доступ — как на чтение
+     * конфига, выборка ограничена компонентом этого импорта.
+     */
+    #[Route('/import-log', methods: ['GET'])]
+    public function importLogAction(
+        Request $request,
+        ConfigurationPreparationService $configurationPreparationService,
+        ImportLogService $importLogService
+    ): JsonResponse {
+        $this->checkPermission(self::CONFIG_NAME);
+
+        $configName = (string) $request->query->get('config_name');
+        $configurationPreparationService->prepareConfiguration($configName);
+
+        $result = $importLogService->entries(
+            $configName,
+            (string) $request->query->get('kind', ImportLogService::KIND_ALL),
+            $request->query->getBoolean('onlyLastRun', true),
+            $request->query->getInt('start', 0),
+            $request->query->getInt('limit', 50)
+        );
+
+        return $this->jsonResponse(['success' => true, 'total' => $result['total'], 'data' => $result['data']]);
+    }
+
+    /**
+     * Сводка последнего запуска: сколько строк записано, отклонено, не найдено.
+     */
+    #[Route('/import-run-summary', methods: ['GET'])]
+    public function importRunSummaryAction(
+        Request $request,
+        ConfigurationPreparationService $configurationPreparationService,
+        ImportLogService $importLogService
+    ): JsonResponse {
+        $this->checkPermission(self::CONFIG_NAME);
+
+        $configName = (string) $request->query->get('config_name');
+        $configurationPreparationService->prepareConfiguration($configName);
+
+        return $this->jsonResponse(['success' => true, 'summary' => $importLogService->lastRunSummary($configName)]);
     }
 
     #[Route('/load-unit-data', methods: ['GET'])]

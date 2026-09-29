@@ -152,6 +152,7 @@ class OpenDxpDataImporterBundle extends AbstractOpenDxpBundle implements Depende
             '/bundles/opendxpdataimporter/js/opendxp/configuration/components/mapping/operator/stringReplace.js',
             '/bundles/opendxpdataimporter/js/opendxp/configuration/components/execution.js',
             '/bundles/opendxpdataimporter/js/opendxp/configuration/components/logTab.js',
+            '/bundles/opendxpdataimporter/js/opendxp/configuration/components/importLog.js',
         ];
     }
 

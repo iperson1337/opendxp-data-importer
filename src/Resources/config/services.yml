@@ -30,6 +30,7 @@ services:
     OpenDxp\Bundle\DataImporterBundle\Preview\PreviewService: ~
     OpenDxp\Bundle\DataImporterBundle\Template\ImportTemplateBuilder: ~
     OpenDxp\Bundle\DataImporterBundle\Template\ImportFileService: ~
+    OpenDxp\Bundle\DataImporterBundle\Log\ImportLogService: ~
     OpenDxp\Bundle\DataImporterBundle\EventListener\ConfigurationEventSubscriber: ~
     OpenDxp\Bundle\DataImporterBundle\EventListener\DataImporterListener:
         tags:

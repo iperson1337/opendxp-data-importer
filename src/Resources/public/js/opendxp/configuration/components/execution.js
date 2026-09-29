@@ -166,6 +166,28 @@ opendxp.plugin.opendxpDataImporterBundle.configuration.components.execution = Cl
             this.progressBar = Ext.create('Ext.ProgressBar', {
                 hidden: true
             });
+
+            // Итог последнего запуска — сколько строк записано, отклонено, не найдено
+            this.summaryLabel = Ext.create('Ext.Component', {
+                hidden: true,
+                style: 'margin-top: 10px'
+            });
+            this.rejectedButton = Ext.create('Ext.button.Button', {
+                hidden: true,
+                iconCls: 'opendxp_icon_warning',
+                margin: '0 10 0 0',
+                handler: this.openImportLog.bind(this, 'rejected')
+            });
+            this.notFoundButton = Ext.create('Ext.button.Button', {
+                hidden: true,
+                iconCls: 'opendxp_icon_search',
+                handler: this.openImportLog.bind(this, 'notFound')
+            });
+            this.summaryButtons = Ext.create('Ext.Container', {
+                layout: 'hbox',
+                margin: '8 0 0 0',
+                items: [this.rejectedButton, this.notFoundButton]
+            });
             this.cancelButtonContainer = Ext.create('Ext.Panel', {
                 layout: 'hbox',
                 hidden: true,
@@ -224,7 +246,9 @@ opendxp.plugin.opendxpDataImporterBundle.configuration.components.execution = Cl
                         items: [
                             this.progressLabel,
                             this.progressBar,
-                            this.cancelButtonContainer
+                            this.cancelButtonContainer,
+                            this.summaryLabel,
+                            this.summaryButtons
 
                         ]
                     }
@@ -258,6 +282,55 @@ opendxp.plugin.opendxpDataImporterBundle.configuration.components.execution = Cl
         // Путь файла берётся из сохранённого конфига — при несохранённых правках он может отличаться
         this.assetFileContainer.setHidden(this.currentLoaderType !== 'asset');
         this.assetFileContainer.setDisabled(this.currentDirtyState);
+    },
+
+    updateSummary: function(isRunning) {
+        // Пока импорт не идёт и сводка уже показана, повторно не спрашиваем
+        if (!isRunning && this.summaryLoaded && !this.lastRunning) {
+            return;
+        }
+        this.lastRunning = isRunning;
+
+        Ext.Ajax.request({
+            url: Routing.generate('opendxp_dataimporter_configdataobject_importrunsummary'),
+            method: 'GET',
+            params: {
+                config_name: this.configName
+            },
+            success: function(response) {
+                const data = Ext.decode(response.responseText);
+                const summary = data && data.summary;
+                this.summaryLoaded = true;
+
+                if (!summary) {
+                    this.summaryLabel.hide();
+                    this.rejectedButton.hide();
+                    this.notFoundButton.hide();
+                    return;
+                }
+
+                const started = Ext.Date.format(new Date(summary.startedAt * 1000), 'd.m.Y H:i');
+                let html = '<b>' + t('plugin_opendxp_datahub_data_importer_summary_last_run') + ' ' + started + (isRunning ? ' (' + t('plugin_opendxp_datahub_data_importer_summary_running') + ')' : '') + ':</b> '
+                    + '<span style="color:#1e8449">' + t('plugin_opendxp_datahub_data_importer_summary_imported') + ' ' + summary.imported + '</span>, '
+                    + '<span style="color:' + (summary.rejected ? '#c0392b' : 'inherit') + '">' + t('plugin_opendxp_datahub_data_importer_summary_rejected') + ' ' + summary.rejected + '</span>, '
+                    + '<span style="color:' + (summary.notFound ? '#d68910' : 'inherit') + '">' + t('plugin_opendxp_datahub_data_importer_summary_not_found') + ' ' + summary.notFound + '</span>';
+                if (summary.warnings) {
+                    html += ', ' + t('plugin_opendxp_datahub_data_importer_summary_warnings') + ' ' + summary.warnings;
+                }
+
+                this.summaryLabel.setHtml(html);
+                this.summaryLabel.show();
+
+                this.rejectedButton.setText(t('plugin_opendxp_datahub_data_importer_log_rejected') + ' (' + summary.rejected + ')');
+                this.rejectedButton.setHidden(!summary.rejected);
+                this.notFoundButton.setText(t('plugin_opendxp_datahub_data_importer_log_not_found') + ' (' + summary.notFound + ')');
+                this.notFoundButton.setHidden(!summary.notFound);
+            }.bind(this)
+        });
+    },
+
+    openImportLog: function(kind) {
+        new opendxp.plugin.opendxpDataImporterBundle.configuration.components.importLog(this.configName).openWindow(kind);
     },
 
     downloadTemplate: function() {
@@ -337,6 +410,7 @@ opendxp.plugin.opendxpDataImporterBundle.configuration.components.execution = Cl
             success: function() {
                 opendxp.helpers.showNotification(t('success'), t('plugin_opendxp_datahub_data_importer_configpanel_execution_upload_and_start_successful'), 'success');
                 this.uploadForm.getForm().reset();
+                this.lastRunning = true;
                 this.updateProgress();
             }.bind(this),
             failure: function(form, action) {
@@ -373,6 +447,7 @@ opendxp.plugin.opendxpDataImporterBundle.configuration.components.execution = Cl
                 button.setDisabled(false);
                 button.setText(t('plugin_opendxp_datahub_data_importer_configpanel_execution_start'));
                 this.updateDisabledState();
+                this.lastRunning = true;
                 this.updateProgress();
             }.bind(this)
         });
@@ -425,6 +500,7 @@ opendxp.plugin.opendxpDataImporterBundle.configuration.components.execution = Cl
                     this.progressLabel.setHtml('<b>' + t('plugin_opendxp_datahub_data_importer_configpanel_execution_not_running') + '</b>');
                 }
 
+                this.updateSummary(data.isRunning);
                 this.updateHandle = setTimeout(this.updateProgress.bind(this), 5000);
 
             }.bind(this)

@@ -301,12 +301,11 @@ opendxp.plugin.opendxpDataImporterBundle.configuration.configItemDataObject = Cl
     },
 
     buildLoggerTab: function() {
-        // Вкладка — та же панель Application Logger и грузит данные сразу при отрисовке;
-        // без права `application_logging` сервер отвечает 403, и админка показывает
-        // «Доступ запрещён» на каждое открытие конфига. Нет права — нет вкладки
-        // (так же, как getPermissions() без права на изменение).
+        // Панель Application Logger отдаёт журнал всего приложения и требует права
+        // `application_logging`. Без него — журнал только этого импорта (importLog),
+        // доступ к которому — как на чтение конфига.
         if (!opendxp.globalmanager.get('user').isAllowed('application_logging')) {
-            return;
+            return new opendxp.plugin.opendxpDataImporterBundle.configuration.components.importLog(this.configName).getTabPanel();
         }
 
         const loggerTab = new opendxp.plugin.opendxpDataImporterBundle.configuration.components.logTab(this.configName);
