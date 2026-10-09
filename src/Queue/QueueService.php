@@ -20,6 +20,7 @@ use Closure;
 use Doctrine\DBAL\Connection;
 use Doctrine\DBAL\Exception;
 use Doctrine\DBAL\Exception\TableNotFoundException;
+use OpenDxp\Bundle\DataImporterBundle\Processing\ImportProcessingService;
 use OpenDxp\Db;
 
 class QueueService
@@ -148,6 +149,23 @@ class QueueService
             return is_array($result) ? $result : [];
         } catch (TableNotFoundException) {
             return $this->createQueueTableIfNotExisting(fn () => $this->getQueueEntryById($id));
+        }
+    }
+
+    /**
+     * Данные всех строк обработки импорта (`jobType = process`) одним запросом.
+     *
+     * @return list<string>
+     */
+    public function getProcessQueueData(string $configName): array
+    {
+        try {
+            return $this->getDb()->fetchFirstColumn(
+                sprintf('SELECT data FROM %s WHERE configName = ? AND jobType = ?', self::QUEUE_TABLE_NAME),
+                [$configName, ImportProcessingService::JOB_TYPE_PROCESS]
+            );
+        } catch (TableNotFoundException) {
+            return $this->createQueueTableIfNotExisting(fn () => $this->getProcessQueueData($configName));
         }
     }
 

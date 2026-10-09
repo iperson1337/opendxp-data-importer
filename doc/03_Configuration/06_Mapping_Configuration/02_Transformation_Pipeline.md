@@ -68,6 +68,12 @@ and the second item reflects the value for the longitude attribute.
 - **Reduce Array KeyValue Pairs**: Reduces a flat array `['k1', 'v1', 'k2', 'v2']` 
    to key-value pair array `['k1' => 'v1', 'k2' => 'v2']`. 
 - **Trim**: Removes leading and/or tailing white spaces from string.
+- **Validate Number**: Rejects the whole data row if the value is not a number: the object is not saved and the
+  reason (prefixed with the configured column name) is logged as an error of this row. Options: value required
+  (default on — an empty value is rejected), integers only, greater than (exclusive lower bound). A decimal comma
+  (`12,5`) is recognized as a number. The value itself is passed on unchanged (only trimmed) — put a converting
+  operator (`As Numeric`, `As Quantity Value`, ...) after it, those silently turn `abc` into `0`. In the preview a
+  failing value is shown as `✗ <reason>` when the operator is the last one in the pipeline.
 - **Static Text**: Adds a static text to the value - either prepends or appends it.
 - **Conditional Conversion**: String values are converted to other string values (e.g. '0' to '1' or 'csv-value' to 'object-value'). Multiple conversions can be configured by separating the values with pipe symbol ('|') (e.g. '0|1|2' to 'some|other|values'). An asterisk can be used as a wildcard (e.g. '0|\*' to 'no value|default' where '0' will be converted to 'no value' and all other values to 'default').
 

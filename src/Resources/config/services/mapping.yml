@@ -22,6 +22,10 @@ services:
         tags:
             - { name: "opendxp.datahub.data_importer.operator", type: "stringReplace" }
 
+    OpenDxp\Bundle\DataImporterBundle\Mapping\Operator\Simple\ValidateNumber:
+        tags:
+            - { name: "opendxp.datahub.data_importer.operator", type: "validateNumber" }
+
     OpenDxp\Bundle\DataImporterBundle\Mapping\Operator\Simple\Explode:
         tags:
             - { name: "opendxp.datahub.data_importer.operator", type: "explode" }

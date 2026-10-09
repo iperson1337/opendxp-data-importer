@@ -22,6 +22,7 @@ use OpenDxp\Bundle\DataImporterBundle\Cleanup\CleanupStrategyFactory;
 use OpenDxp\Bundle\DataImporterBundle\Event\DataObject\PostSaveEvent;
 use OpenDxp\Bundle\DataImporterBundle\Event\DataObject\PreSaveEvent;
 use OpenDxp\Bundle\DataImporterBundle\Exception\InvalidConfigurationException;
+use OpenDxp\Bundle\DataImporterBundle\Exception\InvalidInputException;
 use OpenDxp\Bundle\DataImporterBundle\Mapping\MappingConfiguration;
 use OpenDxp\Bundle\DataImporterBundle\Mapping\MappingConfigurationFactory;
 use OpenDxp\Bundle\DataImporterBundle\Mapping\Operator\Factory\Boolean;
@@ -32,6 +33,7 @@ use OpenDxp\Bundle\DataImporterBundle\Resolver\Location\DoNotCreateStrategy;
 use OpenDxp\Bundle\DataImporterBundle\Resolver\Resolver;
 use OpenDxp\Bundle\DataImporterBundle\Resolver\ResolverFactory;
 use OpenDxp\Bundle\DataImporterBundle\Settings\ConfigurationPreparationService;
+use OpenDxp\Model\DataObject\Concrete;
 use OpenDxp\Model\Element\ElementInterface;
 use OpenDxp\Model\Tool\TmpStore;
 use Psr\Log\LoggerAwareTrait;
@@ -44,6 +46,12 @@ class ImportProcessingService
     use LoggerAwareTrait;
 
     const JOB_TYPE_PROCESS = 'process';
+
+    /** TmpStore: значения `idDataIndex`, встречающиеся в файле прогона больше одного раза */
+    const DUPLICATE_IDS_TMP_STORE_PREFIX = 'data_importer_duplicate_ids_';
+
+    /** Условие на объекте — только проверяющий метод без аргументов, не произвольный вызов */
+    const ELEMENT_CONDITION_METHOD_PATTERN = '/^(is|has|can)[A-Z]\w*$/';
 
     const JOB_TYPE_CLEANUP = 'cleanup';
 
@@ -144,7 +152,7 @@ class ImportProcessingService
             //process element
             if ($queueItem['jobType'] === self::JOB_TYPE_PROCESS) {
                 $data = json_decode((string) $queueItem['data'], true);
-                $this->processElement($configName, $data, $resolver, $mapping, $userOwner);
+                $this->processElement($configName, $data, $resolver, $mapping, $userOwner, $config['processingConfig'] ?? []);
             } elseif ($queueItem['jobType'] === self::JOB_TYPE_CLEANUP) {
                 $this->cleanupElement($configName, $queueItem['data'], $resolver, $config['processingConfig']['cleanup'] ?? []);
             } else {
@@ -176,7 +184,7 @@ class ImportProcessingService
     /**
      * @param MappingConfiguration[] $mapping
      */
-    protected function processElement(string $configName, array $importDataRow, Resolver $resolver, array $mapping, int $userOwner)
+    protected function processElement(string $configName, array $importDataRow, Resolver $resolver, array $mapping, int $userOwner, array $processingConfig = [])
     {
         $element = null;
         $importDataRowString = implode(', ', $this->flattenArray($importDataRow));
@@ -195,6 +203,19 @@ class ImportProcessingService
                     null,
                     'relatedObject' => $element,
                 ]);
+
+                // Сохранение опубликованного объекта поверх черновика оставляет черновик
+                // последней версией: при его публикации значения импорта молча откатятся.
+                if (($processingConfig['rejectIfNewerDraft'] ?? false)
+                    && $element instanceof Concrete
+                    && $element->getId() !== null
+                    && $element->getLatestVersion() !== null
+                ) {
+                    throw new InvalidInputException('у объекта есть черновик новее опубликованной версии — внесите значения вручную');
+                }
+
+                $this->checkElementCondition($element, $processingConfig);
+                $this->checkDuplicateId($configName, $importDataRow, $processingConfig);
 
                 foreach ($mapping as $mappingConfiguration) {
 
@@ -224,6 +245,12 @@ class ImportProcessingService
 
                 $event = new PreSaveEvent($configName, $importDataRow, $element);
                 $this->eventDispatcher->dispatch($event);
+
+                // Импорт пишет только свои колонки — дыра в чужом обязательном поле объекта
+                // не должна отклонять строку
+                if (($processingConfig['omitMandatoryCheck'] ?? false) && $element instanceof Concrete) {
+                    $element->setOmitMandatoryCheck(true);
+                }
 
                 $this->checkKey($element);
                 $element
@@ -265,6 +292,56 @@ class ImportProcessingService
                 'fileObject' => new FileObject(json_encode($importDataRow)),
                 'relatedObject' => $element,
             ]);
+        }
+    }
+
+    /**
+     * `processingConfig.elementCondition`: имя проверяющего метода объекта (`is*`, `has*`, `can*`,
+     * без аргументов). Вернул не true — строка отклоняется с `elementConditionMessage`. Проверяется
+     * до маппинга, то есть на сохранённом состоянии объекта.
+     *
+     * @throws InvalidConfigurationException
+     * @throws InvalidInputException
+     */
+    protected function checkElementCondition(ElementInterface $element, array $processingConfig): void
+    {
+        $method = trim((string) ($processingConfig['elementCondition'] ?? ''));
+        if ($method === '') {
+            return;
+        }
+
+        if (!preg_match(self::ELEMENT_CONDITION_METHOD_PATTERN, $method) || !method_exists($element, $method)) {
+            throw new InvalidConfigurationException(sprintf('Условие на объекте `%s`: нужен существующий метод is*/has*/can* без аргументов', $method));
+        }
+
+        if ($element->$method() !== true) {
+            $message = trim((string) ($processingConfig['elementConditionMessage'] ?? ''));
+
+            throw new InvalidInputException($message !== '' ? $message : sprintf('объект не прошёл условие %s()', $method));
+        }
+    }
+
+    /**
+     * `processingConfig.rejectDuplicateIds`: строка, чьё значение `idDataIndex` встречается в файле
+     * больше одного раза, отклоняется — иначе победила бы та, что обработана последней.
+     *
+     * @throws InvalidInputException
+     */
+    protected function checkDuplicateId(string $configName, array $importDataRow, array $processingConfig): void
+    {
+        $idDataIndex = (string) ($processingConfig['idDataIndex'] ?? '');
+        if (!($processingConfig['rejectDuplicateIds'] ?? false) || $idDataIndex === '') {
+            return;
+        }
+
+        $id = trim((string) ($importDataRow[$idDataIndex] ?? ''));
+        if ($id === '') {
+            return;
+        }
+
+        $duplicates = TmpStore::get(self::DUPLICATE_IDS_TMP_STORE_PREFIX . $configName)?->getData() ?? [];
+        if (isset($duplicates[$id])) {
+            throw new InvalidInputException(sprintf('«%s» встречается в файле больше одного раза', $id));
         }
     }
 

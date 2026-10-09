@@ -15,6 +15,22 @@ single data row in application logger anyway. For details also see
 [Import Process and Logging](../05_Import_Progress_and_Logging.md).
    
 
+### Skip Mandatory Field Check
+Data objects only: saves imported objects with `setOmitMandatoryCheck(true)`. Use it for imports that update a few
+fields of existing objects — otherwise an empty mandatory field that the import does not touch rejects the row with
+`Validation failed: Empty mandatory field [...]`. YAML key: `processingConfig.omitMandatoryCheck`.
+
+### Reject Objects with a Newer Draft
+Data objects only: rejects the row (error in the import log, object not saved) if the existing object has a version
+newer than the saved one, i.e. an unpublished draft. Saving the object would leave the draft as the latest version,
+and publishing that draft later silently reverts the imported values. YAML key: `processingConfig.rejectIfNewerDraft`.
+
+### Object Condition
+Data objects only: name of a checking method of the existing object (`is*`, `has*` or `can*`, no arguments), e.g.
+`isShowboxLevelAvailable`. If it does not return `true`, the row is rejected with the configured reason (or a generic
+one). The condition is checked before mapping, i.e. on the saved state of the object. Other method names are refused
+as a configuration error. YAML keys: `processingConfig.elementCondition`, `processingConfig.elementConditionMessage`.
+
 ### Delta Check
 > This option requires an id field in the import data.
 
@@ -27,6 +43,14 @@ changes of the data object if self, that might occur in the meantime between two
 
 Be aware that calculating and saving hashes for delta checking needs additional resources. So use this option
 wisely.   
+
+
+### Reject Duplicate IDs
+> This option requires an id field in the import data.
+
+Rejects every row whose id value occurs in the import file more than once — otherwise the row processed last would
+win silently. Duplicates are counted over the whole queue right after the file is interpreted.
+YAML key: `processingConfig.rejectDuplicateIds`.
 
 
 ### Cleanup   

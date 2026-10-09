@@ -28,6 +28,7 @@ use OpenDxp\Bundle\DataImporterBundle\Processing\Scheduler\SchedulerFactory;
 use OpenDxp\Bundle\DataImporterBundle\Queue\QueueService;
 use OpenDxp\Bundle\DataImporterBundle\Resolver\ResolverFactory;
 use OpenDxp\Bundle\DataImporterBundle\Settings\ConfigurationPreparationService;
+use OpenDxp\Model\Tool\TmpStore;
 use Psr\Log\LoggerAwareTrait;
 use Symfony\Contracts\EventDispatcher\EventDispatcherInterface;
 
@@ -142,6 +143,10 @@ class ImportPreparationService
             $loader->cleanup();
             $this->logger->info('Cleaned up source file if necessary.');
 
+            // До PostPreparationEvent: на нём DataImporterListener отдаёт строки воркерам,
+            // а карта дублей к первой строке уже должна существовать
+            $this->collectDuplicateIds($configName, $config['processingConfig'] ?? []);
+
             $this->eventDispatcher->dispatch(new PostPreparationEvent($configName, $config['processingConfig']['executionType'] ?? ImportProcessingService::EXECUTION_TYPE_SEQUENTIAL, $fileInterpreted));
 
             return $fileInterpreted;
@@ -188,6 +193,35 @@ class ImportPreparationService
             $this->prepareImport($configName);
             $this->executionService->updateExecutionTimestamp($configName, $executionDateTime);
         }
+    }
+
+    /**
+     * Для `processingConfig.rejectDuplicateIds`: значения колонки `idDataIndex`, встречающиеся в
+     * файле больше одного раза. Строки обрабатываются по одной и, возможно, разными процессами,
+     * поэтому дубли считаются по всей очереди прогона, а не по ходу обработки.
+     */
+    protected function collectDuplicateIds(string $configName, array $processingConfig): void
+    {
+        $tmpStoreKey = ImportProcessingService::DUPLICATE_IDS_TMP_STORE_PREFIX . $configName;
+        $idDataIndex = (string) ($processingConfig['idDataIndex'] ?? '');
+
+        if (!($processingConfig['rejectDuplicateIds'] ?? false) || $idDataIndex === '') {
+            TmpStore::delete($tmpStoreKey);
+
+            return;
+        }
+
+        $counts = [];
+        foreach ($this->queueService->getProcessQueueData($configName) as $json) {
+            $row = json_decode((string) $json, true);
+            $id = is_array($row) ? trim((string) ($row[$idDataIndex] ?? '')) : '';
+            if ($id !== '') {
+                $counts[$id] = ($counts[$id] ?? 0) + 1;
+            }
+        }
+
+        $duplicates = array_keys(array_filter($counts, static fn (int $count): bool => $count > 1));
+        TmpStore::set($tmpStoreKey, array_fill_keys(array_map('strval', $duplicates), true));
     }
 
     public function isConfigurationActive(string $configName, array $config): bool

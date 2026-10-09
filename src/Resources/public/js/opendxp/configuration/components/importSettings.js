@@ -224,6 +224,13 @@ opendxp.plugin.opendxpDataImporterBundle.configuration.components.importSettings
             inputValue: true,
             value: this.processingConfigData.cleanup && this.processingConfigData.cleanup.hasOwnProperty('doCleanup') ? this.processingConfigData.cleanup.doCleanup : false
         });
+        const rejectDuplicateIdsCheckbox = Ext.create('Ext.form.field.Checkbox', {
+            fieldLabel: t('plugin_opendxp_datahub_data_importer_configpanel_reject_duplicate_ids'),
+            name: 'rejectDuplicateIds',
+            disabled: !this.processingConfigData.idDataIndex || 0 === this.processingConfigData.idDataIndex.length,
+            inputValue: true,
+            value: this.processingConfigData.hasOwnProperty('rejectDuplicateIds') ? this.processingConfigData.rejectDuplicateIds : false
+        });
         const cleanupSettingsPanel = Ext.create('Ext.Panel', {width: 900});
         const cleanupStrategy = Ext.create('DataHub.DataImporter.SubSettingsComboBox', {
             fieldLabel: t('plugin_opendxp_datahub_data_importer_configpanel_cleanup_strategy'),
@@ -262,6 +269,37 @@ opendxp.plugin.opendxpDataImporterBundle.configuration.components.importSettings
                     value: this.processingConfigData.hasOwnProperty('doArchiveImportFile') ? this.processingConfigData.doArchiveImportFile : false
                 },
                 {
+                    xtype: 'checkbox',
+                    fieldLabel: t('plugin_opendxp_datahub_data_importer_configpanel_omit_mandatory_check'),
+                    name: 'omitMandatoryCheck',
+                    inputValue: true,
+                    value: this.processingConfigData.hasOwnProperty('omitMandatoryCheck') ? this.processingConfigData.omitMandatoryCheck : false
+                },
+                {
+                    xtype: 'checkbox',
+                    fieldLabel: t('plugin_opendxp_datahub_data_importer_configpanel_reject_if_newer_draft'),
+                    name: 'rejectIfNewerDraft',
+                    inputValue: true,
+                    value: this.processingConfigData.hasOwnProperty('rejectIfNewerDraft') ? this.processingConfigData.rejectIfNewerDraft : false
+                },
+                {
+                    xtype: 'textfield',
+                    fieldLabel: t('plugin_opendxp_datahub_data_importer_configpanel_element_condition'),
+                    name: 'elementCondition',
+                    allowBlank: true,
+                    regex: /^((is|has|can)[A-Z]\w*)?$/,
+                    emptyText: 'isSomething',
+                    value: this.processingConfigData.elementCondition || ''
+                },
+                {
+                    xtype: 'textfield',
+                    fieldLabel: t('plugin_opendxp_datahub_data_importer_configpanel_element_condition_message'),
+                    name: 'elementConditionMessage',
+                    allowBlank: true,
+                    width: 900,
+                    value: this.processingConfigData.elementConditionMessage || ''
+                },
+                {
                     xtype: 'combo',
                     fieldLabel: t('plugin_opendxp_datahub_data_importer_configpanel_id_data_index'),
                     name: 'idDataIndex',
@@ -277,10 +315,12 @@ opendxp.plugin.opendxpDataImporterBundle.configuration.components.importSettings
                         change: function(textfield, newValue, oldValue) {
                             const hasNoIdField = (!newValue || 0 === newValue.length);
                             doDeltaCheckCheckbox.setDisabled(hasNoIdField);
+                            rejectDuplicateIdsCheckbox.setDisabled(hasNoIdField);
                             doCleanup.setDisabled(hasNoIdField);
                             cleanupStrategy.setDisabled(hasNoIdField);
                             if(hasNoIdField) {
                                 doDeltaCheckCheckbox.setValue(false);
+                                rejectDuplicateIdsCheckbox.setValue(false);
                                 doCleanup.setValue(false);
                                 cleanupStrategy.setValue('');
                             }
@@ -288,6 +328,7 @@ opendxp.plugin.opendxpDataImporterBundle.configuration.components.importSettings
                     }
                 },
                 doDeltaCheckCheckbox,
+                rejectDuplicateIdsCheckbox,
                 doCleanup,
                 cleanupStrategy
             ]

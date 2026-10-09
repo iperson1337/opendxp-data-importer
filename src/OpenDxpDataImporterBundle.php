@@ -121,6 +121,7 @@ class OpenDxpDataImporterBundle extends AbstractOpenDxpBundle implements Depende
             '/bundles/opendxpdataimporter/js/opendxp/configuration/components/mapping/operator/abstractOperator.js',
             '/bundles/opendxpdataimporter/js/opendxp/configuration/components/mapping/operator/trim.js',
             '/bundles/opendxpdataimporter/js/opendxp/configuration/components/mapping/operator/numeric.js',
+            '/bundles/opendxpdataimporter/js/opendxp/configuration/components/mapping/operator/validateNumber.js',
             '/bundles/opendxpdataimporter/js/opendxp/configuration/components/mapping/operator/asArray.js',
             '/bundles/opendxpdataimporter/js/opendxp/configuration/components/mapping/operator/asCountries.js',
             '/bundles/opendxpdataimporter/js/opendxp/configuration/components/mapping/operator/asGeopoint.js',
