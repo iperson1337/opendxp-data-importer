@@ -20,6 +20,7 @@ opendxp.plugin.opendxpDataImporterBundle.configuration.components.execution = Cl
     currentLoaderType: null,
     currentDirtyState: false,
     updateHandle: null,
+    runningExecutionsListener: null,
 
     initialize: function(configName, data, configItemRootContainer, loaderType) {
         this.configName = configName;
@@ -214,6 +215,7 @@ opendxp.plugin.opendxpDataImporterBundle.configuration.components.execution = Cl
 
                                     opendxp.helpers.showNotification(t('success'), t('plugin_opendxp_datahub_data_importer_configpanel_execution_cancel_successful'), 'success');
                                     this.updateProgress();
+                                    this.requestRunningExecutionsUpdate();
 
                                 }.bind(this)
                             });
@@ -223,6 +225,7 @@ opendxp.plugin.opendxpDataImporterBundle.configuration.components.execution = Cl
             });
 
             this.updateProgress();
+            this.subscribeToRunningExecutions();
 
             this.form = Ext.create('DataHub.DataImporter.StructuredValueForm', {
                 bodyStyle: 'padding:10px;',
@@ -271,6 +274,9 @@ opendxp.plugin.opendxpDataImporterBundle.configuration.components.execution = Cl
 
             this.form.on('destroy', function() {
                 clearTimeout(this.updateHandle);
+                if (this.runningExecutionsListener) {
+                    document.removeEventListener(this.getRunningExecutionsEvent(), this.runningExecutionsListener);
+                }
             }.bind(this));
 
         }
@@ -448,6 +454,7 @@ opendxp.plugin.opendxpDataImporterBundle.configuration.components.execution = Cl
                 this.updateDisabledState();
                 this.lastRunning = true;
                 this.updateProgress();
+                this.requestRunningExecutionsUpdate();
             }.bind(this)
         });
     },
@@ -477,6 +484,50 @@ opendxp.plugin.opendxpDataImporterBundle.configuration.components.execution = Cl
 
     },
 
+    /**
+     * Индикатор «Идёт выполнение» Data Hub (opendxp-data-hub ≥ 1.2) уже опрашивает прогресс всех
+     * импортов одним кешированным запросом и бросает событие на document. Вкладка берёт статус
+     * оттуда и сама сервер не опрашивает; без индикатора (выключен в настройках) — опрос раз в 5 с.
+     */
+    usesRunningExecutions: function() {
+        const settings = opendxp.settings['data-hub-running-executions'];
+        return !!(settings && settings.enabled);
+    },
+
+    getRunningExecutionsEvent: function() {
+        return opendxp.plugin.datahub.config.prototype.runningExecutionsEvent || 'opendxp.datahub.runningExecutions';
+    },
+
+    subscribeToRunningExecutions: function() {
+        if (!this.usesRunningExecutions()) {
+            return;
+        }
+
+        this.runningExecutionsListener = function(event) {
+            const items = (event.detail && event.detail.items) || [];
+            const item = items.find(function(candidate) {
+                return candidate.name === this.configName;
+            }.bind(this));
+
+            // Индикатор считает импорт идущим так же, как check-import-progress: пока в очереди есть строки
+            this.renderProgress(item
+                ? {isRunning: true, progress: item.progress, processedItems: item.processed, totalItems: item.total}
+                : {isRunning: false});
+        }.bind(this);
+        document.addEventListener(this.getRunningExecutionsEvent(), this.runningExecutionsListener);
+    },
+
+    /**
+     * После «Запустить» / «Отменить» индикатор в простое опросил бы сервер только через 30 с.
+     * Сводка на сервере кешируется на несколько секунд, поэтому просим опрос чуть позже кеша.
+     */
+    requestRunningExecutionsUpdate: function() {
+        const datahub = opendxp.globalmanager.get('plugin_opendxp_datahub_config');
+        if (this.usesRunningExecutions() && datahub && typeof datahub.scheduleRunningExecutionsUpdate === 'function') {
+            datahub.scheduleRunningExecutionsUpdate(6000);
+        }
+    },
+
     updateProgress: function() {
         clearTimeout(this.updateHandle);
         Ext.Ajax.request({
@@ -486,24 +537,32 @@ opendxp.plugin.opendxpDataImporterBundle.configuration.components.execution = Cl
                 config_name: this.configName,
             },
             success: function (response) {
-                let data = Ext.decode(response.responseText);
+                this.renderProgress(Ext.decode(response.responseText));
 
-                if(data.isRunning) {
-                    this.progressBar.show();
-                    this.cancelButtonContainer.show();
-                    this.progressBar.updateProgress(data.progress, data.processedItems + '/' + data.totalItems + ' ' + t('plugin_opendxp_datahub_data_importer_configpanel_execution_processed'));
-                    this.progressLabel.setHtml(t('plugin_opendxp_datahub_data_importer_configpanel_execution_current_progress'));
-                } else {
-                    this.progressBar.hide();
-                    this.cancelButtonContainer.hide();
-                    this.progressLabel.setHtml('<b>' + t('plugin_opendxp_datahub_data_importer_configpanel_execution_not_running') + '</b>');
+                if (!this.usesRunningExecutions()) {
+                    this.updateHandle = setTimeout(this.updateProgress.bind(this), 5000);
                 }
-
-                this.updateSummary(data.isRunning);
-                this.updateHandle = setTimeout(this.updateProgress.bind(this), 5000);
-
             }.bind(this)
         });
+    },
+
+    renderProgress: function(data) {
+        if (!this.form || this.form.destroyed) {
+            return;
+        }
+
+        if(data.isRunning) {
+            this.progressBar.show();
+            this.cancelButtonContainer.show();
+            this.progressBar.updateProgress(data.progress, data.processedItems + '/' + data.totalItems + ' ' + t('plugin_opendxp_datahub_data_importer_configpanel_execution_processed'));
+            this.progressLabel.setHtml(t('plugin_opendxp_datahub_data_importer_configpanel_execution_current_progress'));
+        } else {
+            this.progressBar.hide();
+            this.cancelButtonContainer.hide();
+            this.progressLabel.setHtml('<b>' + t('plugin_opendxp_datahub_data_importer_configpanel_execution_not_running') + '</b>');
+        }
+
+        this.updateSummary(data.isRunning);
     }
 
 });
