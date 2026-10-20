@@ -22,7 +22,7 @@
         "league/flysystem-sftp-v3": "^3.0",
         "nesbot/carbon": "^3.0",
         "phpoffice/phpspreadsheet": "^2.2 || ^3.3",
-        "iperson1337/opendxp-data-hub": "^1.0",
+        "iperson1337/opendxp-data-hub": "^1.2",
         "open-dxp/opendxp": "^1.1",
         "symfony/mime": "^7.4",
         "webmozarts/console-parallelization": "^2.0"

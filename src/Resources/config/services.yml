@@ -25,6 +25,7 @@ services:
 
 
     OpenDxp\Bundle\DataImporterBundle\Queue\QueueService: ~
+    OpenDxp\Bundle\DataImporterBundle\Processing\RunningImportProvider: ~
     OpenDxp\Bundle\DataImporterBundle\Processing\ExecutionService: ~
     OpenDxp\Bundle\DataImporterBundle\Settings\ConfigurationPreparationService: ~
     OpenDxp\Bundle\DataImporterBundle\Preview\PreviewService: ~

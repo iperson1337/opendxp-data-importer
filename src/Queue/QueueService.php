@@ -169,6 +169,24 @@ class QueueService
         }
     }
 
+    /**
+     * Число строк очереди по каждому конфигу одним запросом (индекс по `configName`).
+     *
+     * @return array<string, int>
+     */
+    public function getQueueItemCountsByConfig(): array
+    {
+        try {
+            $counts = $this->getDb()->fetchAllKeyValue(
+                sprintf('SELECT configName, count(*) FROM %s WHERE configName IS NOT NULL GROUP BY configName', self::QUEUE_TABLE_NAME)
+            );
+
+            return array_map('intval', $counts);
+        } catch (TableNotFoundException) {
+            return $this->createQueueTableIfNotExisting(fn () => $this->getQueueItemCountsByConfig());
+        }
+    }
+
     public function getQueueItemCount(string $configName): int
     {
         try {
