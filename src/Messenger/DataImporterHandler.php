@@ -56,7 +56,8 @@ class DataImporterHandler
         protected int $workerCountLifeTime,
         protected int $workerItemCount,
         protected $workerCountParallel,
-        protected int $workerHeartbeatTimeout = 300
+        protected int $workerHeartbeatTimeout = 300,
+        protected int $workerPickupTimeout = 900
     ) {
         $this->workerCounts[ImportProcessingService::EXECUTION_TYPE_PARALLEL] = $this->workerCountParallel;
     }
@@ -65,6 +66,12 @@ class DataImporterHandler
     {
         try {
             foreach ($message->getIds() as $id) {
+                // Пачку могли счесть потерянной (или перехватить через 50 минут) и раздать строки
+                // заново — берём строку, только пока она закреплена за этим сообщением. Проверка
+                // перед каждой строкой, а не раз в начале: пачку могут раздать заново и посреди прогона.
+                if ($message->ownsRows() && $this->queueService->filterOwnedIds([$id], $message->getMessageId()) === []) {
+                    continue;
+                }
                 $this->heartbeat($message);
                 $this->importProcessingService->processQueueItem($id);
             }
@@ -83,13 +90,13 @@ class DataImporterHandler
 
         $addWorkers = true;
         while ($addWorkers && $dispatchedMessageCount < ($this->workerCounts[$executionType] ?? 1)) {
-            $ids = $this->queueService->getAllQueueEntryIds($executionType, $this->workerItemCount, true);
+            $messageId = uniqid();
+            $ids = $this->queueService->getAllQueueEntryIds($executionType, $this->workerItemCount, true, $messageId);
             if (!empty($ids)) {
-                $messageId = uniqid();
 
                 // Dispatch before marking the worker as running: if the process dies right
                 // here, a dispatch that never happened leaves no orphaned marker behind.
-                $this->messageBus->dispatch(new DataImporterMessage($executionType, $ids, $messageId));
+                $this->messageBus->dispatch(new DataImporterMessage($executionType, $ids, $messageId, true));
                 $this->addMessage($messageId, $executionType, $ids);
                 $dispatchedMessageCount = $this->getMessageCount($executionType);
             } else {
@@ -160,8 +167,14 @@ class DataImporterHandler
             }
 
             $heartbeat = $data['heartbeat'] ?? null;
-            if ($heartbeat !== null && $heartbeat < time() - $this->workerHeartbeatTimeout) {
-                // Воркер убит посреди пачки — вернуть её строки в очередь и не ждать
+            // Пульса нет — воркер за пачку ещё не брался: сообщение ждёт в транспорте или потерялось
+            // (воркер перезапущен, пока держал его). Отсчёт тогда от раздачи, с запасом на очередь.
+            $isDead = $heartbeat !== null
+                ? $heartbeat < time() - $this->workerHeartbeatTimeout
+                : $marker->getDate() < time() - $this->workerPickupTimeout;
+            if ($isDead) {
+                // Вернуть строки в очередь и не ждать. Если сообщение всё-таки дойдёт до воркера,
+                // оно возьмёт только строки, ещё закреплённые за ним (filterOwnedIds).
                 $this->queueService->resetDispatched($remaining);
                 TmpStore::delete($markerId);
                 continue;

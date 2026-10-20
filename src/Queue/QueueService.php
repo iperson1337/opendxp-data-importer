@@ -108,12 +108,15 @@ class QueueService
     /**
      * @throws \Doctrine\DBAL\Driver\Exception|Exception
      */
-    public function getAllQueueEntryIds(string $executionType, int $limit = 100000, bool $dispatch = false): array
+    /**
+     * @param string|null $workerId чей пачкой помечаются строки при `$dispatch`; по умолчанию новый uniqid()
+     */
+    public function getAllQueueEntryIds(string $executionType, int $limit = 100000, bool $dispatch = false, ?string $workerId = null): array
     {
         try {
             if ($dispatch === true) {
                 $dispatchId = time();
-                $workerId = uniqid();
+                $workerId ??= uniqid();
 
                 $this->getDb()->executeQuery('UPDATE ' . self::QUEUE_TABLE_NAME . ' SET dispatched = ?, workerId = ? WHERE executionType = ? AND (ISNULL(dispatched) OR dispatched < ?) LIMIT ' . intval($limit),
                     [$dispatchId, $workerId, $executionType, $dispatchId - 3000]);
@@ -131,7 +134,7 @@ class QueueService
 
             return $results ?? []; // @phpstan-ignore-line
         } catch (TableNotFoundException) {
-            return $this->createQueueTableIfNotExisting(fn () => $this->getAllQueueEntryIds($executionType, $limit));
+            return $this->createQueueTableIfNotExisting(fn () => $this->getAllQueueEntryIds($executionType, $limit, $dispatch, $workerId));
         }
     }
 
@@ -232,6 +235,30 @@ class QueueService
      *
      * @param int[] $ids
      */
+    /**
+     * Из `$ids` — только строки, всё ещё закреплённые за пачкой `$workerId`.
+     *
+     * @param array<int|string> $ids
+     *
+     * @return list<int>
+     */
+    public function filterOwnedIds(array $ids, string $workerId): array
+    {
+        $ids = array_values(array_filter(array_map('intval', $ids)));
+        if ($ids === []) {
+            return [];
+        }
+
+        try {
+            return array_map('intval', $this->getDb()->fetchFirstColumn(
+                sprintf('SELECT id FROM %s WHERE workerId = ? AND id IN (%s) ORDER BY id', self::QUEUE_TABLE_NAME, implode(',', $ids)),
+                [$workerId]
+            ));
+        } catch (TableNotFoundException) {
+            return [];
+        }
+    }
+
     public function resetDispatched(array $ids): void
     {
         $ids = array_values(array_filter(array_map('intval', $ids)));

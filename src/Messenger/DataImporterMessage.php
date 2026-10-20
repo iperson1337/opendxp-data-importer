@@ -17,11 +17,24 @@ namespace OpenDxp\Bundle\DataImporterBundle\Messenger;
 
 class DataImporterMessage
 {
+    /**
+     * Строки очереди помечены `workerId = messageId`. Не promoted-свойство с умолчанием, чтобы
+     * сообщения, сериализованные до появления поля, читались как `false` (старое поведение).
+     */
+    protected bool $ownsRows = false;
+
     public function __construct(
         protected string $executionType,
         protected array $ids,
-        protected string $messageId
+        protected string $messageId,
+        bool $ownsRows = false
     ) {
+        $this->ownsRows = $ownsRows;
+    }
+
+    public function ownsRows(): bool
+    {
+        return $this->ownsRows;
     }
 
     public function getExecutionType(): string

@@ -71,6 +71,8 @@ In addition to that, following settings are available. They all have meaningful 
 - `worker_count_parallel`: Count of maximum parallel worker messages for parallel imports.
 - `worker_item_count`: Count of items imported per worker message.
 - `worker_count_lifetime`: Lifetime of tmp store entry for current worker count entry. After lifetime, the value will be cleared.
+- `worker_heartbeat_timeout`: Seconds without a worker heartbeat after which a started batch is considered dead and its unprocessed items go back to the queue (default 300).
+- `worker_pickup_timeout`: Seconds a dispatched batch may wait for a worker to start it before it is considered lost (e.g. the worker was restarted while holding the message) and its items go back to the queue (default 900). A late message then processes only the items still assigned to it.
 
 Messages are dispatched via `opendxp_data_import` transport. So make sure, you have
 workers processing this transport when activating the messenger based queue processing.
