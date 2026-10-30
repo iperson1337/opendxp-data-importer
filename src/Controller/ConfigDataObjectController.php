@@ -645,12 +645,28 @@ class ConfigDataObjectController extends UserAwareController
         }
 
         $filename = $template['filename'];
-        $fallback = preg_replace('/[^A-Za-z0-9._-]/', '_', $filename) ?: 'template';
+        $fallback = self::asciiFilename($filename);
 
         return new Response($template['content'], Response::HTTP_OK, [
             'Content-Type' => 'application/octet-stream',
             'Content-Disposition' => HeaderUtils::makeDisposition(HeaderUtils::DISPOSITION_ATTACHMENT, $filename, $fallback),
         ]);
+    }
+
+    /**
+     * Запасное ASCII-имя для `filename=` в Content-Disposition (настоящее имя — в `filename*`): кириллица
+     * транслитерируется, а не превращается в строку подчёркиваний («ImportProducts_Sablon_zagruzki.xlsx»,
+     * а не «ImportProducts________.xlsx»).
+     */
+    private static function asciiFilename(string $filename): string
+    {
+        $ascii = function_exists('transliterator_transliterate')
+            ? (transliterator_transliterate('Any-Latin; Latin-ASCII', $filename) ?: $filename)
+            : $filename;
+        $ascii = preg_replace(['/[^A-Za-z0-9._-]+/', '/_{2,}/'], '_', $ascii) ?? '';
+        $ascii = trim(preg_replace('/_+\./', '.', $ascii) ?? '', '_');
+
+        return $ascii !== '' && !str_starts_with($ascii, '.') ? $ascii : 'template';
     }
 
     /**
