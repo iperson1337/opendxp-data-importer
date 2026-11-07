@@ -45,8 +45,27 @@ class XlsxFileInterpreter extends AbstractInterpreter
         }
 
         foreach ($data as $rowData) {
+            // Пустые строки в середине или хвосте листа (отформатированные, но без значений)
+            // PhpSpreadsheet отдаёт как массив null — импортировать в них нечего.
+            if (self::isRowEmpty($rowData)) {
+                continue;
+            }
             $this->processImportRow($rowData);
         }
+    }
+
+    /**
+     * @param array<int, mixed> $row
+     */
+    public static function isRowEmpty(array $row): bool
+    {
+        foreach ($row as $cell) {
+            if ($cell !== null && trim((string) $cell) !== '') {
+                return false;
+            }
+        }
+
+        return true;
     }
 
     public function fileValid(string $path, bool $originalFilename = false): bool
