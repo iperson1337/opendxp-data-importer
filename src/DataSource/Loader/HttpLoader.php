@@ -35,6 +35,12 @@ class HttpLoader implements DataLoaderInterface
      */
     protected $importFilePath;
 
+    /**
+     * `copy()` принимает любую обёртку потока (`file://`, `php://`, `phar://`), а схема приходит
+     * из конфигурации — поэтому список закрытый.
+     */
+    public const ALLOWED_SCHEMAS = ['https://', 'http://'];
+
     public function __construct(
         protected Filesystem $filesystem
     ) {
@@ -69,6 +75,9 @@ class HttpLoader implements DataLoaderInterface
 
         if (empty($settings['schema'])) {
             throw new InvalidConfigurationException('Empty Schema.');
+        }
+        if (!in_array($settings['schema'], self::ALLOWED_SCHEMAS, true)) {
+            throw new InvalidConfigurationException('Schema must be one of: ' . implode(', ', self::ALLOWED_SCHEMAS));
         }
         $this->schema = $settings['schema'];
     }

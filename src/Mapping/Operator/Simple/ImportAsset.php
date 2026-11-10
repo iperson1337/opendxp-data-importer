@@ -26,6 +26,8 @@ use Override;
 
 class ImportAsset extends AbstractOperator
 {
+    public const ALLOWED_URL_SCHEMES = ['http', 'https'];
+
     /**
      * @var string
      */
@@ -77,6 +79,12 @@ class ImportAsset extends AbstractOperator
 
             if (empty($fileUrl)) {
                 continue;
+            }
+
+            // file_get_contents() читает любую обёртку потока и локальные пути, а адрес приходит из
+            // данных импорта — поэтому только http и https
+            if (!in_array(strtolower((string) parse_url($fileUrl, PHP_URL_SCHEME)), self::ALLOWED_URL_SCHEMES, true)) {
+                throw new InvalidConfigurationException(sprintf('Import asset: only %s URLs are allowed.', implode(' and ', self::ALLOWED_URL_SCHEMES)));
             }
 
             $filename = Service::getValidKey(basename($fileUrl), 'asset');

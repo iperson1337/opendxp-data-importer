@@ -31,6 +31,8 @@ class ConnectionController extends UserAwareController
     #[Route('/connections', name: 'opendxp_dataimporter_connections', methods: ['GET'])]
     public function connectionAction(): JsonResponse
     {
+        $this->checkPermission(ConfigDataObjectController::CONFIG_NAME);
+
         $connections = $this->getParameter('doctrine.connections');
 
         $mappedConnections = array_map(fn ($key, $value): array => [

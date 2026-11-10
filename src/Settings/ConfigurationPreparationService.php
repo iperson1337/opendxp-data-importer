@@ -31,6 +31,22 @@ class ConfigurationPreparationService
      */
     public function prepareConfiguration(string $configName, $currentConfig = null, $ignorePermissions = false)
     {
+        if ($currentConfig && !$ignorePermissions) {
+            // Несохранённая конфигурация из запроса исполняется наравне с сохранённой (загрузчик,
+            // маппинг, операторы), поэтому принимается только от того, кто вправе её сохранить.
+            // Тому, у кого только чтение, предпросмотр строится по сохранённой конфигурации.
+            $saved = Dao::getByName($configName);
+            if (!$saved) {
+                throw new AccessDeniedHttpException('Configuration ' . $configName . ' does not exist.');
+            }
+            if (!$saved->isAllowed('read')) {
+                throw new AccessDeniedHttpException('Access denied');
+            }
+            if (!$saved->isAllowed('update')) {
+                $currentConfig = null;
+            }
+        }
+
         if ($currentConfig) {
             if (is_string($currentConfig)) {
                 $currentConfig = json_decode($currentConfig, true);

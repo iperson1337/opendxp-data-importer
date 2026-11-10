@@ -34,6 +34,7 @@ use OpenDxp\Bundle\DataImporterBundle\Processing\ImportPreparationService;
 use OpenDxp\Bundle\DataImporterBundle\Processing\ImportProcessingService;
 use OpenDxp\Bundle\DataImporterBundle\Settings\ConfigurationPreparationService;
 use OpenDxp\Bundle\DataImporterBundle\Template\ImportFileService;
+use OpenDxp\Controller\KernelControllerEventInterface;
 use OpenDxp\Controller\Traits\JsonHelperTrait;
 use OpenDxp\Controller\UserAwareController;
 use OpenDxp\Logger;
@@ -44,10 +45,12 @@ use Symfony\Component\HttpFoundation\HeaderUtils;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\HttpKernel\Event\ControllerEvent;
+use Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException;
 use Symfony\Component\Routing\Attribute\Route;
 
 #[Route('/admin/opendxpdataimporter/dataobject/config')]
-class ConfigDataObjectController extends UserAwareController
+class ConfigDataObjectController extends UserAwareController implements KernelControllerEventInterface
 {
     use JsonHelperTrait;
 
@@ -64,6 +67,34 @@ class ConfigDataObjectController extends UserAwareController
     public function __construct(PreviewService $previewService)
     {
         $this->previewService = $previewService;
+    }
+
+    /**
+     * Права для всех экшенов контроллера разом — в том числе тех, что появятся позже.
+     *
+     * Нужны право `plugin_datahub_config` и право чтения конфигурации, названной в запросе.
+     * Имя берётся из тела и из строки запроса: экшены читают его то оттуда, то отсюда,
+     * поэтому проверяется каждое присланное значение.
+     */
+    public function onKernelControllerEvent(ControllerEvent $event): void
+    {
+        if (!$event->isMainRequest()) {
+            return;
+        }
+
+        $this->checkPermission(self::CONFIG_NAME);
+
+        $request = $event->getRequest();
+        foreach ([$request->request->get('config_name'), $request->query->get('config_name')] as $configName) {
+            if (!is_string($configName) || $configName === '') {
+                continue;
+            }
+
+            $configuration = Dao::getByName($configName);
+            if ($configuration !== null && !$configuration->isAllowed('read')) {
+                throw new AccessDeniedHttpException(sprintf('No read permission for configuration `%s`', $configName));
+            }
+        }
     }
 
     /**
